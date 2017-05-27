@@ -12,14 +12,21 @@ public interface TidingDataSource {
 
     void deleteAllTidings();
 
-    interface LoadNewsCallback {
+    interface LoadTidingsCallback {
 
-        void onTidingLoaded(List<Tiding> mews);
+        void onTidingLoaded(List<Tiding> tidings);
 
         void onDataNotAvailable();
     }
 
-    void getTidings(@NonNull LoadNewsCallback callback);
+    interface GetTidingCallback {
+
+        void onTaskLoaded(Tiding tiding);
+
+        void onDataNotAvailable();
+    }
+
+    void getTidings(@NonNull LoadTidingsCallback callback);
 
     void refreshTidings();
 }

@@ -22,7 +22,7 @@ public class TidingLocalDataSource implements TidingDataSource {
     }
 
     @Override
-    public void saveTiding(Tiding news) {
+    public void saveTiding(Tiding tiding) {
 
     }
 
@@ -32,7 +32,7 @@ public class TidingLocalDataSource implements TidingDataSource {
     }
 
     @Override
-    public void getTidings(@NonNull LoadNewsCallback callback) {
+    public void getTidings(@NonNull LoadTidingsCallback callback) {
 
     }
 

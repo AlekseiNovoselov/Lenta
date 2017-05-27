@@ -16,7 +16,7 @@ public class TidingRepository implements TidingDataSource {
     private final TidingDataSource mNewsLocalDataSource;
     private final TidingDataSource mNewsRemoteDataSource;
 
-    Map<String, Tiding> mCachedNews;
+    Map<String, Tiding> mCachedTidings;
 
     boolean mCacheIsDirty = false;
 
@@ -36,15 +36,15 @@ public class TidingRepository implements TidingDataSource {
     }
 
     @Override
-    public void saveTiding(@NonNull Tiding news) {
-        mNewsRemoteDataSource.saveTiding(news);
-        mNewsLocalDataSource.saveTiding(news);
+    public void saveTiding(@NonNull Tiding tiding) {
+        mNewsRemoteDataSource.saveTiding(tiding);
+        mNewsLocalDataSource.saveTiding(tiding);
 
         // Do in memory cache update to keep the app UI up to date
-        if (mCachedNews == null) {
-            mCachedNews = new LinkedHashMap<>();
+        if (mCachedTidings == null) {
+            mCachedTidings = new LinkedHashMap<>();
         }
-        mCachedNews.put(news.getId(), news);
+        mCachedTidings.put(tiding.getTitle(), tiding);
     }
 
     @Override
@@ -52,17 +52,17 @@ public class TidingRepository implements TidingDataSource {
         mNewsRemoteDataSource.deleteAllTidings();
         mNewsLocalDataSource.deleteAllTidings();
 
-        if (mCachedNews == null) {
-            mCachedNews = new LinkedHashMap<>();
+        if (mCachedTidings == null) {
+            mCachedTidings = new LinkedHashMap<>();
         }
-        mCachedNews.clear();
+        mCachedTidings.clear();
     }
 
     @Override
-    public void getTidings(@NonNull final LoadNewsCallback callback) {
+    public void getTidings(@NonNull final LoadTidingsCallback callback) {
         // Respond immediately with cache if available and not dirty
-        if (mCachedNews != null && !mCacheIsDirty) {
-            callback.onTidingLoaded(new ArrayList<>(mCachedNews.values()));
+        if (mCachedTidings != null && !mCacheIsDirty) {
+            callback.onTidingLoaded(new ArrayList<>(mCachedTidings.values()));
             return;
         }
 
@@ -71,11 +71,11 @@ public class TidingRepository implements TidingDataSource {
             getNewsFromRemoteDataSource(callback);
         } else {
             // Query the local storage if available. If not, query the network.
-            mNewsLocalDataSource.getTidings(new LoadNewsCallback() {
+            mNewsLocalDataSource.getTidings(new LoadTidingsCallback() {
                 @Override
-                public void onTidingLoaded(List<Tiding> tasks) {
-                    refreshCache(tasks);
-                    callback.onTidingLoaded(new ArrayList<>(mCachedNews.values()));
+                public void onTidingLoaded(List<Tiding> tidings) {
+                    refreshCache(tidings);
+                    callback.onTidingLoaded(new ArrayList<>(mCachedTidings.values()));
                 }
 
                 @Override
@@ -86,13 +86,13 @@ public class TidingRepository implements TidingDataSource {
         }
     }
 
-    private void getNewsFromRemoteDataSource(@NonNull final LoadNewsCallback callback) {
-        mNewsRemoteDataSource.getTidings(new LoadNewsCallback() {
+    private void getNewsFromRemoteDataSource(@NonNull final LoadTidingsCallback callback) {
+        mNewsRemoteDataSource.getTidings(new LoadTidingsCallback() {
             @Override
-            public void onTidingLoaded(List<Tiding> tasks) {
-                refreshCache(tasks);
-                refreshLocalDataSource(tasks);
-                callback.onTidingLoaded(new ArrayList<>(mCachedNews.values()));
+            public void onTidingLoaded(List<Tiding> tidings) {
+                refreshCache(tidings);
+                refreshLocalDataSource(tidings);
+                callback.onTidingLoaded(new ArrayList<>(mCachedTidings.values()));
             }
 
             @Override
@@ -102,26 +102,30 @@ public class TidingRepository implements TidingDataSource {
         });
     }
 
-    private void refreshCache(List<Tiding> newss) {
-        if (mCachedNews == null) {
-            mCachedNews = new LinkedHashMap<>();
+    private void refreshCache(List<Tiding> tidings) {
+        if (mCachedTidings == null) {
+            mCachedTidings = new LinkedHashMap<>();
         }
-        mCachedNews.clear();
-        for (Tiding news : newss) {
-            mCachedNews.put(news.getId(), news);
+        mCachedTidings.clear();
+        for (Tiding tiding : tidings) {
+            mCachedTidings.put(tiding.getTitle(), tiding);
         }
         mCacheIsDirty = false;
     }
 
-    private void refreshLocalDataSource(List<Tiding> newss) {
+    private void refreshLocalDataSource(List<Tiding> tidings) {
         mNewsLocalDataSource.deleteAllTidings();
-        for (Tiding news : newss) {
+        for (Tiding news : tidings) {
             mNewsLocalDataSource.saveTiding(news);
         }
     }
 
     @Override
     public void refreshTidings() {
+        mCacheIsDirty = true;
+    }
 
+    public static void destroyInstance() {
+        INSTANCE = null;
     }
 }

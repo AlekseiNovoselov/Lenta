@@ -11,15 +11,16 @@ import java.util.List;
 
 public class TidingsListPresenter implements TidingsListContract.Presenter {
 
-    private final TidingRepository mNewsRepository;
-    private final TidingsListContract.View mLentaView;
+    private final TidingRepository mTidingsRepository;
+    private final TidingsListContract.View mTidingListView;
 
     private boolean mFirstLoad = true;
 
-    public TidingsListPresenter(@NonNull TidingRepository newsRepository, @NonNull TidingsListFragment lentaFragment) {
-        mNewsRepository = newsRepository;
-        mLentaView = lentaFragment;
-        mLentaView.setPresenter(this);
+    public TidingsListPresenter(@NonNull TidingRepository tidingRepository,
+                                @NonNull TidingsListFragment tidingListView) {
+        mTidingsRepository = tidingRepository;
+        mTidingListView = tidingListView;
+        mTidingListView.setPresenter(this);
     }
 
     @Override
@@ -30,36 +31,29 @@ public class TidingsListPresenter implements TidingsListContract.Presenter {
     @Override
     public void loadTidings(boolean forceUpdate) {
         // Simplification for sample: a network reload will be forced on first load.
-        loadTasks(forceUpdate || mFirstLoad, true);
+        loadTidings(forceUpdate || mFirstLoad, true);
         mFirstLoad = false;
     }
 
-    private void loadTasks(boolean forceUpdate, final boolean showLoadingUI) {
+    private void loadTidings(boolean forceUpdate, final boolean showLoadingUI) {
         if (showLoadingUI) {
-            mLentaView.setLoadingIndicator(true);
+            mTidingListView.setLoadingIndicator(true);
         }
         if (forceUpdate) {
-            mNewsRepository.refreshTidings();
+            mTidingsRepository.refreshTidings();
         }
 
-        mNewsRepository.getTidings(new TidingDataSource.LoadNewsCallback() {
+        mTidingsRepository.getTidings(new TidingDataSource.LoadTidingsCallback() {
             @Override
             public void onTidingLoaded(List<Tiding> news) {
                 List<Tiding> newsToShow = new ArrayList<Tiding>();
 
-                // This callback may be called twice, once for the cache and once for loading
-                // the data from the server API, so we check before decrementing, otherwise
-                // it throws "Counter has been corrupted!" exception.
-//                if (!EspressoIdlingResource.getIdlingResource().isIdleNow()) {
-//                    EspressoIdlingResource.decrement(); // Set app as idle.
-//                }
-
                 // The view may not be able to handle UI updates anymore
-                if (!mLentaView.isActive()) {
+                if (!mTidingListView.isActive()) {
                     return;
                 }
                 if (showLoadingUI) {
-                    mLentaView.setLoadingIndicator(false);
+                    mTidingListView.setLoadingIndicator(false);
                 }
 
                 processTasks(newsToShow);
@@ -68,10 +62,10 @@ public class TidingsListPresenter implements TidingsListContract.Presenter {
             @Override
             public void onDataNotAvailable() {
                 // The view may not be able to handle UI updates anymore
-                if (!mLentaView.isActive()) {
+                if (!mTidingListView.isActive()) {
                     return;
                 }
-                mLentaView.showLoadingTidingsError();
+                mTidingListView.showLoadingTidingsError();
             }
         });
     }
@@ -82,14 +76,14 @@ public class TidingsListPresenter implements TidingsListContract.Presenter {
             processEmptyTasks();
         } else {
             // Show the list of tasks
-            mLentaView.showTidings(newss);
+            mTidingListView.showTidings(newss);
             // Set the filter label's text.
             //showFilterLabel();
         }
     }
 
     private void processEmptyTasks() {
-        mLentaView.showNoTidings();
+        mTidingListView.showNoTidings();
     }
 
 
