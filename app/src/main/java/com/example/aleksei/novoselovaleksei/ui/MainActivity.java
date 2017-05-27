@@ -1,4 +1,4 @@
-package com.example.aleksei.novoselovaleksei.lenta;
+package com.example.aleksei.novoselovaleksei.ui;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -9,7 +9,7 @@ import com.example.aleksei.novoselovaleksei.utils.ActivityUtils;
 
 public class MainActivity extends AppCompatActivity {
 
-    private LentaPresenter mLentaPresenter;
+    private TidingsListPresenter mLentaPresenter;
 
     private static final String CURRENT_FILTERING_KEY = "CURRENT_FILTERING_KEY";
 
@@ -18,18 +18,18 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        LentaFragment lentaFragment =
-                (LentaFragment) getSupportFragmentManager().findFragmentById(R.id.contentFrame);
+        TidingsListFragment lentaFragment =
+                (TidingsListFragment) getSupportFragmentManager().findFragmentById(R.id.contentFrame);
 
         if (lentaFragment == null) {
             // Create the fragment
-            lentaFragment = LentaFragment.newInstance();
+            lentaFragment = TidingsListFragment.newInstance();
             ActivityUtils.addFragmentToActivity(
                     getSupportFragmentManager(), lentaFragment, R.id.contentFrame);
         }
 
         // Create the presenter
-        mLentaPresenter = new LentaPresenter(
+        mLentaPresenter = new TidingsListPresenter(
                 Injection.provideTasksRepository(getApplicationContext()), lentaFragment);
 
 
