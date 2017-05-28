@@ -19,11 +19,10 @@ public interface TidingDataSource {
         void onDataNotAvailable();
     }
 
-    interface GetTidingCallback {
+    interface RemoteLoadTidingsCallback {
+        void onRemoteTidingLoaded(List<Tiding> tidings);
 
-        void onTaskLoaded(Tiding tiding);
-
-        void onDataNotAvailable();
+        void onRemoteDataNotAvailable();
     }
 
     void getTidings(@NonNull LoadTidingsCallback callback);

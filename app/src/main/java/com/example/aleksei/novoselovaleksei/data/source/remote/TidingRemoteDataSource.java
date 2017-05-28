@@ -1,20 +1,18 @@
 package com.example.aleksei.novoselovaleksei.data.source.remote;
 
-import android.os.Handler;
 import android.support.annotation.NonNull;
 
 import com.example.aleksei.novoselovaleksei.data.Tiding;
 import com.example.aleksei.novoselovaleksei.data.source.TidingDataSource;
+import com.example.aleksei.novoselovaleksei.data.source.remote.common.BaseSource;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import retrofit2.Call;
+
 public class TidingRemoteDataSource implements TidingDataSource {
-
-    private List<Tiding> TIDINGS = Arrays.asList(new Tiding("Title3", "Description3"),
-            new Tiding("Title4", "Description4"));
-
-    private static final int SERVICE_LATENCY_IN_MILLIS = 5000;
 
     private static TidingRemoteDataSource INSTANCE;
 
@@ -38,16 +36,34 @@ public class TidingRemoteDataSource implements TidingDataSource {
 
     }
 
+    private List<Call> mCalls = Collections.synchronizedList(new ArrayList<Call>());
+
     @Override
     public void getTidings(@NonNull final LoadTidingsCallback callback) {
-        // Simulate network by delaying the execution.
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                callback.onTidingLoaded(TIDINGS);
+
+        for (Call call: mCalls) {
+            if (call.isExecuted()) {
+                call.cancel();
             }
-        }, SERVICE_LATENCY_IN_MILLIS);
+            mCalls.remove(call);
+        }
+
+        SourceFactory sourceFactory = new SourceFactory();
+        for (BaseSource baseSource : sourceFactory.getSources()) {
+            final Call call = baseSource.load(new TidingDataSource.RemoteLoadTidingsCallback() {
+
+                @Override
+                public void onRemoteTidingLoaded(List<Tiding> tidings) {
+                    callback.onTidingLoaded(tidings);
+                }
+
+                @Override
+                public void onRemoteDataNotAvailable() {
+                    callback.onDataNotAvailable();
+                }
+            });
+            mCalls.add(call);
+        }
     }
 
     @Override

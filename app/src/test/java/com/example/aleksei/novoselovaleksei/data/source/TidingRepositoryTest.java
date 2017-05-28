@@ -1,6 +1,7 @@
 package com.example.aleksei.novoselovaleksei.data.source;
 
 import com.example.aleksei.novoselovaleksei.data.Tiding;
+import com.example.aleksei.novoselovaleksei.data.source.remote.common.BaseSource;
 
 import org.junit.After;
 import org.junit.Before;
@@ -23,8 +24,11 @@ import static org.mockito.Mockito.verify;
 
 public class TidingRepositoryTest {
 
-    private List<Tiding> TIDINGS = Arrays.asList(new Tiding("Title1", "Description1"),
-            new Tiding("Title2", "Description2"));
+    private List<Tiding> TIDINGS = Arrays.asList(
+            new Tiding("Title1", "\"Sun, 28 May 2017 18:00:00 +0300\"",
+                    "Description1", null, BaseSource.Source.LENTA),
+            new Tiding("Title2", "\"Sun, 28 May 2017 18:00:00 +0300\"",
+                    "Description2", null, BaseSource.Source.LENTA));
 
     private TidingRepository mTidingRepository;
 
@@ -89,7 +93,8 @@ public class TidingRepositoryTest {
     @Test
     public void saveTiding_savesTidingToServiceAPI() {
         // Given a stub task with title and description
-        Tiding newTiding = new Tiding("Title", "Some Task Description");
+        Tiding newTiding = new Tiding("Title", "\"Sun, 28 May 2017 18:00:00 +0300\"",
+                "Some Task Description", null, BaseSource.Source.LENTA);
 
         // When a task is saved to the tidings repository
         mTidingRepository.saveTiding(newTiding);
@@ -104,8 +109,12 @@ public class TidingRepositoryTest {
     public void deleteAllTidings_deleteTidingsToServiceAPIUpdatesCache() {
 
         mTidingRepository.mCachedTidings = new LinkedHashMap<>();
-        mTidingRepository.mCachedTidings.put("TITLE1", new Tiding("TITLE1", "description1"));
-        mTidingRepository.mCachedTidings.put("TITLE2", new Tiding("TITLE2", "description2"));
+        mTidingRepository.mCachedTidings.put("TITLE1",
+                new Tiding("TITLE1","\"Sun, 28 May 2017 18:00:00 +0300\"",
+                        "description1", null, BaseSource.Source.LENTA));
+        mTidingRepository.mCachedTidings.put("TITLE2",
+                new Tiding("TITLE2", "\"Sun, 28 May 2017 18:00:00 +0300\"",
+                        "description2", null, BaseSource.Source.LENTA));
 
         // When all tidings are deleted to the tidings repository
         mTidingRepository.deleteAllTidings();
