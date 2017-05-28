@@ -10,9 +10,9 @@ public class Tiding {
     private String mImageUrl;
     private BaseSource.Source mSource;
 
-    public String getmImageUrl() { return mImageUrl;}
+    public String getImageUrl() { return mImageUrl;}
 
-    public String getmPublicationDate() { return mPublicationDate;}
+    public String getPublicationDate() { return mPublicationDate;}
 
     public String getTitle() {
         return mTitle;
@@ -20,6 +20,10 @@ public class Tiding {
 
     public String getDescription() {
         return mDescription;
+    }
+
+    public BaseSource.Source getSource() {
+        return mSource;
     }
 
     public Tiding(String title, String publicationData, String description, String imageUrl, BaseSource.Source source) {

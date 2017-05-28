@@ -117,11 +117,11 @@ public class TidingRepositoryTest {
                         "description2", null, BaseSource.Source.LENTA));
 
         // When all tidings are deleted to the tidings repository
-        mTidingRepository.deleteAllTidings();
+        mTidingRepository.deleteAllTidings(tidings.get(0).getSource());
 
         // Verify the data sources were called
-        verify(mTidingRemoteDataSource).deleteAllTidings();
-        verify(mTidingLocalDataSource).deleteAllTidings();
+        verify(mTidingRemoteDataSource).deleteAllTidings(tidings.get(0).getSource());
+        verify(mTidingLocalDataSource).deleteAllTidings(tidings.get(0).getSource());
 
         assertThat(mTidingRepository.mCachedTidings.size(), is(0));
     }

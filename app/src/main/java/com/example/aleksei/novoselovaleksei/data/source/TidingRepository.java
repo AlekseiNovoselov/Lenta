@@ -3,6 +3,7 @@ package com.example.aleksei.novoselovaleksei.data.source;
 import android.support.annotation.NonNull;
 
 import com.example.aleksei.novoselovaleksei.data.Tiding;
+import com.example.aleksei.novoselovaleksei.data.source.remote.common.BaseSource;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -18,7 +19,7 @@ public class TidingRepository implements TidingDataSource {
 
     Map<String, Tiding> mCachedTidings;
 
-    boolean mCacheIsDirty = false;
+    private boolean mCacheIsDirty = false;
 
     // Prevent direct instantiation.
     private TidingRepository(@NonNull TidingDataSource newsRemoteDataSource,
@@ -48,9 +49,9 @@ public class TidingRepository implements TidingDataSource {
     }
 
     @Override
-    public void deleteAllTidings() {
-        mNewsRemoteDataSource.deleteAllTidings();
-        mNewsLocalDataSource.deleteAllTidings();
+    public void deleteAllTidings(BaseSource.Source source) {
+        mNewsRemoteDataSource.deleteAllTidings(source);
+        mNewsLocalDataSource.deleteAllTidings(source);
 
         if (mCachedTidings == null) {
             mCachedTidings = new LinkedHashMap<>();
@@ -114,7 +115,7 @@ public class TidingRepository implements TidingDataSource {
     }
 
     private void refreshLocalDataSource(List<Tiding> tidings) {
-        mNewsLocalDataSource.deleteAllTidings();
+        mNewsLocalDataSource.deleteAllTidings(tidings.get(0).getSource());
         for (Tiding news : tidings) {
             mNewsLocalDataSource.saveTiding(news);
         }

@@ -32,7 +32,7 @@ public class TidingRemoteDataSource implements TidingDataSource {
     }
 
     @Override
-    public void deleteAllTidings() {
+    public void deleteAllTidings(BaseSource.Source source) {
 
     }
 
@@ -45,8 +45,8 @@ public class TidingRemoteDataSource implements TidingDataSource {
             if (call.isExecuted()) {
                 call.cancel();
             }
-            mCalls.remove(call);
         }
+        mCalls.clear();
 
         SourceFactory sourceFactory = new SourceFactory();
         for (BaseSource baseSource : sourceFactory.getSources()) {
