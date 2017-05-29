@@ -107,11 +107,19 @@ public class TidingRepository implements TidingDataSource {
         if (mCachedTidings == null) {
             mCachedTidings = new LinkedHashMap<>();
         }
-        mCachedTidings.clear();
+        clear(mCachedTidings, tidings.get(0).getSource());
         for (Tiding tiding : tidings) {
             mCachedTidings.put(tiding.getTitle(), tiding);
         }
         mCacheIsDirty = false;
+    }
+
+    private void clear(Map<String, Tiding> mCachedTidings, BaseSource.Source source) {
+        for (Tiding tiding : mCachedTidings.values()) {
+            if (tiding.getSource() == source) {
+                mCachedTidings.remove(tiding.getTitle());
+            }
+        }
     }
 
     private void refreshLocalDataSource(List<Tiding> tidings) {

@@ -3,6 +3,11 @@ package com.example.aleksei.novoselovaleksei.data.source.remote.common;
 import android.support.annotation.NonNull;
 
 import com.example.aleksei.novoselovaleksei.data.source.TidingDataSource;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
@@ -12,9 +17,11 @@ import retrofit2.converter.simplexml.SimpleXmlConverterFactory;
 public abstract class BaseSource {
 
     private String mBaseUrl;
+    protected DateFormat formatter;
 
     public BaseSource(String baseUrl) {
         mBaseUrl = baseUrl;
+        formatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
     }
 
     public Call load(@NonNull final TidingDataSource.RemoteLoadTidingsCallback callback) {

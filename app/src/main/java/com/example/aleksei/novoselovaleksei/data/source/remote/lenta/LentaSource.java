@@ -6,7 +6,9 @@ import com.example.aleksei.novoselovaleksei.data.Tiding;
 import com.example.aleksei.novoselovaleksei.data.source.TidingDataSource;
 import com.example.aleksei.novoselovaleksei.data.source.remote.common.BaseSource;
 
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import retrofit2.Call;
@@ -54,15 +56,19 @@ public class LentaSource extends BaseSource {
     private List<Tiding> getTidings(List<RssLentaItem> mItems) {
         List<Tiding> tidings = new ArrayList<>();
         for (RssLentaItem item: mItems) {
-            String title = item.getTitle();
-            String publicationDate = item.getPublicationDate();
-            String description = item.getDescription();
-            Enclosure enclosure = item.getEnclosure();
-            String imageUrl = null;
-            if (enclosure != null)  {
-                imageUrl = enclosure.getUrl();
+            try {
+                String title = item.getTitle();
+                Date date = formatter.parse(item.getPublicationDate());
+                String description = item.getDescription();
+                Enclosure enclosure = item.getEnclosure();
+                String imageUrl = null;
+                if (enclosure != null)  {
+                    imageUrl = enclosure.getUrl();
+                }
+                tidings.add(new Tiding(title, date.getTime(), description, imageUrl, getSource()));
+            } catch (ParseException e) {
+                e.printStackTrace();
             }
-            tidings.add(new Tiding(title, publicationDate, description, imageUrl, getSource()));
         }
         return tidings;
     }

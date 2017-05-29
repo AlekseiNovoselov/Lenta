@@ -18,19 +18,19 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        TidingsListFragment lentaFragment =
+        TidingsListFragment tidingListFragment =
                 (TidingsListFragment) getSupportFragmentManager().findFragmentById(R.id.contentFrame);
 
-        if (lentaFragment == null) {
+        if (tidingListFragment == null) {
             // Create the fragment
-            lentaFragment = TidingsListFragment.newInstance();
+            tidingListFragment = TidingsListFragment.newInstance();
             ActivityUtils.addFragmentToActivity(
-                    getSupportFragmentManager(), lentaFragment, R.id.contentFrame);
+                    getSupportFragmentManager(), tidingListFragment, R.id.contentFrame);
         }
 
         // Create the presenter
         mLentaPresenter = new TidingsListPresenter(
-                Injection.provideTasksRepository(getApplicationContext()), lentaFragment);
+                Injection.provideTasksRepository(getApplicationContext()), tidingListFragment);
 
 
     }

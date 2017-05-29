@@ -6,7 +6,8 @@ import com.example.aleksei.novoselovaleksei.data.Tiding;
 import com.example.aleksei.novoselovaleksei.data.source.TidingDataSource;
 import com.example.aleksei.novoselovaleksei.data.source.TidingRepository;
 
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class TidingsListPresenter implements TidingsListContract.Presenter {
@@ -46,9 +47,14 @@ public class TidingsListPresenter implements TidingsListContract.Presenter {
         mTidingsRepository.getTidings(new TidingDataSource.LoadTidingsCallback() {
             @Override
             public void onTidingLoaded(List<Tiding> news) {
-                List<Tiding> newsToShow = new ArrayList<Tiding>();
-
                 // The view may not be able to handle UI updates anymore
+
+                Collections.sort(news, new Comparator<Tiding>() {
+                    public int compare(Tiding left, Tiding right)  {
+                        return (int) right.getPublicationDate() - (int) left.getPublicationDate(); // The order depends on the direction of sorting.
+                    }
+                });
+
                 if (!mTidingListView.isActive()) {
                     return;
                 }
@@ -56,7 +62,7 @@ public class TidingsListPresenter implements TidingsListContract.Presenter {
                     mTidingListView.setLoadingIndicator(false);
                 }
 
-                processTasks(newsToShow);
+                processTidings(news);
             }
 
             @Override
@@ -70,13 +76,13 @@ public class TidingsListPresenter implements TidingsListContract.Presenter {
         });
     }
 
-    private void processTasks(List<Tiding> newss) {
-        if (newss.isEmpty()) {
+    private void processTidings(List<Tiding> tidings) {
+        if (tidings.isEmpty()) {
             // Show a message indicating there are no tasks for that filter type.
             processEmptyTasks();
         } else {
             // Show the list of tasks
-            mTidingListView.showTidings(newss);
+            mTidingListView.showTidings(tidings);
             // Set the filter label's text.
             //showFilterLabel();
         }

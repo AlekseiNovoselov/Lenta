@@ -7,8 +7,13 @@ import com.example.aleksei.novoselovaleksei.data.source.TidingDataSource;
 import com.example.aleksei.novoselovaleksei.data.source.remote.common.BaseSource;
 import com.example.aleksei.novoselovaleksei.data.source.remote.common.RssBaseItem;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -54,10 +59,14 @@ public class GazetaSource extends BaseSource {
     public List<Tiding> getTidings(List<RssGazetaItem> mItems) {
         List<Tiding> tidings = new ArrayList<>();
         for (RssBaseItem item: mItems) {
-            String title = item.getTitle();
-            String publicationDate = item.getPublicationDate();
-            String description = item.getDescription();
-            tidings.add(new Tiding(title, publicationDate, description, null, getSource()));
+            try {
+                String title = item.getTitle();
+                Date date = formatter.parse(item.getPublicationDate());
+                String description = item.getDescription();
+                tidings.add(new Tiding(title, date.getTime(), description, null, getSource()));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
         }
         return tidings;
     }
