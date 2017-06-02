@@ -12,7 +12,7 @@ import com.example.aleksei.novoselovaleksei.utils.schedulers.SchedulerProvider;
 public class Injection {
     public static TidingRepository provideTasksRepository(@NonNull Context context) {
         return TidingRepository.getInstance(TidingRemoteDataSource.getInstance(),
-                TidingLocalDataSource.getInstance(context));
+                TidingLocalDataSource.getInstance(context, provideSchedulerProvider()));
     }
 
     public static BaseSchedulerProvider provideSchedulerProvider() {
