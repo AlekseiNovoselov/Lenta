@@ -7,13 +7,10 @@ import com.example.aleksei.novoselovaleksei.data.source.TidingDataSource;
 import com.example.aleksei.novoselovaleksei.data.source.remote.common.BaseSource;
 import com.example.aleksei.novoselovaleksei.data.source.remote.common.RssBaseItem;
 
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import retrofit2.Call;
 import retrofit2.Callback;

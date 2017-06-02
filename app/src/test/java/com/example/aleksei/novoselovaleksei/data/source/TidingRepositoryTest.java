@@ -25,9 +25,9 @@ import static org.mockito.Mockito.verify;
 public class TidingRepositoryTest {
 
     private List<Tiding> TIDINGS = Arrays.asList(
-            new Tiding("Title1", "\"Sun, 28 May 2017 18:00:00 +0300\"",
+            new Tiding("Title1", 100L,
                     "Description1", null, BaseSource.Source.LENTA),
-            new Tiding("Title2", "\"Sun, 28 May 2017 18:00:00 +0300\"",
+            new Tiding("Title2", 200L,
                     "Description2", null, BaseSource.Source.LENTA));
 
     private TidingRepository mTidingRepository;
@@ -93,7 +93,7 @@ public class TidingRepositoryTest {
     @Test
     public void saveTiding_savesTidingToServiceAPI() {
         // Given a stub task with title and description
-        Tiding newTiding = new Tiding("Title", "\"Sun, 28 May 2017 18:00:00 +0300\"",
+        Tiding newTiding = new Tiding("Title", 100L,
                 "Some Task Description", null, BaseSource.Source.LENTA);
 
         // When a task is saved to the tidings repository
@@ -110,18 +110,18 @@ public class TidingRepositoryTest {
 
         mTidingRepository.mCachedTidings = new LinkedHashMap<>();
         mTidingRepository.mCachedTidings.put("TITLE1",
-                new Tiding("TITLE1","\"Sun, 28 May 2017 18:00:00 +0300\"",
+                new Tiding("TITLE1",100L,
                         "description1", null, BaseSource.Source.LENTA));
         mTidingRepository.mCachedTidings.put("TITLE2",
-                new Tiding("TITLE2", "\"Sun, 28 May 2017 18:00:00 +0300\"",
+                new Tiding("TITLE2", 200L,
                         "description2", null, BaseSource.Source.LENTA));
 
         // When all tidings are deleted to the tidings repository
-        mTidingRepository.deleteAllTidings(tidings.get(0).getSource());
+        mTidingRepository.deleteAllTidings(TIDINGS.get(0).getSource());
 
         // Verify the data sources were called
-        verify(mTidingRemoteDataSource).deleteAllTidings(tidings.get(0).getSource());
-        verify(mTidingLocalDataSource).deleteAllTidings(tidings.get(0).getSource());
+        verify(mTidingRemoteDataSource).deleteAllTidings(TIDINGS.get(0).getSource());
+        verify(mTidingLocalDataSource).deleteAllTidings(TIDINGS.get(0).getSource());
 
         assertThat(mTidingRepository.mCachedTidings.size(), is(0));
     }

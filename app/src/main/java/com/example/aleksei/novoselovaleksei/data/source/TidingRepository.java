@@ -6,9 +6,11 @@ import com.example.aleksei.novoselovaleksei.data.Tiding;
 import com.example.aleksei.novoselovaleksei.data.source.remote.common.BaseSource;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class TidingRepository implements TidingDataSource {
 
@@ -115,9 +117,15 @@ public class TidingRepository implements TidingDataSource {
     }
 
     private void clear(Map<String, Tiding> mCachedTidings, BaseSource.Source source) {
+        Set<String> toRemove = new HashSet<>();
         for (Tiding tiding : mCachedTidings.values()) {
             if (tiding.getSource() == source) {
-                mCachedTidings.remove(tiding.getTitle());
+                toRemove.add(tiding.getTitle());
+            }
+        }
+        for (String key : toRemove) {
+            if (mCachedTidings.containsKey(key)) {
+                mCachedTidings.remove(key);
             }
         }
     }

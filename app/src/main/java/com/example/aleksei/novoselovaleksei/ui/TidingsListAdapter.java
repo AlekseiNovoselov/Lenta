@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import com.example.aleksei.novoselovaleksei.R;
 import com.example.aleksei.novoselovaleksei.data.Tiding;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -42,7 +43,9 @@ public class TidingsListAdapter extends RecyclerView.Adapter<TidingsListAdapter.
         Tiding item = tidings.get(i);
 
         holder.titleTextField.setText(item.getTitle());
-        // TODO - add Image
+        Picasso.with(holder.imageView.getContext())
+                .load(item.getImageUrl())
+                .into(holder.imageView);
         holder.descriptionTextField.setText(item.getDescription());
         holder.publicationDateTextField.setText(String.valueOf(item.getPublicationDate()));
     }

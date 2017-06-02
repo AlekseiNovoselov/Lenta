@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface TidingDataSource {
 
-    void saveTiding(Tiding news);
+    void saveTiding(Tiding tiding);
 
     void deleteAllTidings(BaseSource.Source source);
 
