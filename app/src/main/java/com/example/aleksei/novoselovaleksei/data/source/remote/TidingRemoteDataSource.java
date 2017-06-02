@@ -3,19 +3,17 @@ package com.example.aleksei.novoselovaleksei.data.source.remote;
 import com.example.aleksei.novoselovaleksei.data.Tiding;
 import com.example.aleksei.novoselovaleksei.data.source.TidingDataSource;
 import com.example.aleksei.novoselovaleksei.data.source.remote.common.BaseSource;
+import com.example.aleksei.novoselovaleksei.data.source.remote.gazeta.GazetaSource;
+import com.example.aleksei.novoselovaleksei.data.source.remote.lenta.LentaSource;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-
-import retrofit2.Call;
 import rx.Observable;
 
 public class TidingRemoteDataSource implements TidingDataSource {
 
     private static TidingRemoteDataSource INSTANCE;
 
-    // Prevent direct instantiation.
     private TidingRemoteDataSource() {}
 
     public static TidingRemoteDataSource getInstance() {
@@ -35,40 +33,18 @@ public class TidingRemoteDataSource implements TidingDataSource {
 
     }
 
-    private List<Call> mCalls = Collections.synchronizedList(new ArrayList<Call>());
-
     @Override
     public Observable<List<Tiding>> getTidings() {
 
-//        for (Call call: mCalls) {
-//            if (call.isExecuted()) {
-//                call.cancel();
-//            }
-//        }
-//        mCalls.clear();
+        BaseSource lentaSource = new LentaSource();
+        BaseSource gazetaSource = new GazetaSource();
 
-
-
-        SourceFactory sourceFactory = new SourceFactory();
-        BaseSource baseSource = sourceFactory.getSources().get(0);
-        return baseSource.load();
-
-//        for (BaseSource baseSource : sourceFactory.getSources()) {
-//            final Call call = baseSource.load(new TidingDataSource.RemoteLoadTidingsCallback() {
-//
-//                @Override
-//                public void onRemoteTidingLoaded(List<Tiding> tidings) {
-//                    callback.onTidingLoaded(tidings);
-//                }
-//
-//                @Override
-//                public void onRemoteDataNotAvailable() {
-//                    callback.onDataNotAvailable();
-//                }
-//            });
-//            //mCalls.add(call);
-//        }
-
+        return Observable.zip(lentaSource.load(), gazetaSource.load(),
+                (list1, list2) -> {
+                    List<Tiding> combinedList = new ArrayList<>(list1);
+                    combinedList.addAll(list2);
+                    return combinedList;
+                });
     }
 
     @Override

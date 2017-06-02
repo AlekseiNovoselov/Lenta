@@ -1,9 +1,6 @@
 package com.example.aleksei.novoselovaleksei.data.source.remote.gazeta;
 
-import android.support.annotation.NonNull;
-
 import com.example.aleksei.novoselovaleksei.data.Tiding;
-import com.example.aleksei.novoselovaleksei.data.source.TidingDataSource;
 import com.example.aleksei.novoselovaleksei.data.source.remote.common.BaseSource;
 import com.example.aleksei.novoselovaleksei.data.source.remote.common.RssBaseItem;
 
@@ -26,31 +23,34 @@ public class GazetaSource extends BaseSource {
         super(RSS_GAZETA_LINK);
     }
 
-    protected Call execute(Retrofit retrofit, final @NonNull TidingDataSource.RemoteLoadTidingsCallback callback) {
-        RssGazetaRetrofitAdapter retrofitService = retrofit.create(RssGazetaRetrofitAdapter.class);
-        Call<RssGazetaFeed> call = retrofitService.getItems();
-        call.enqueue(new Callback<RssGazetaFeed>() {
-            @Override
-            public void onResponse(Call<RssGazetaFeed> call, Response<RssGazetaFeed> response) {
-                RssGazetaFeed feed = response.body();
-                List<RssGazetaItem> mItems = feed.getChannel().getGazetaItemList();
-
-                GazetaSource source = new GazetaSource();
-                List<Tiding> tidings = source.getTidings(mItems);
-                callback.onRemoteTidingLoaded(tidings);
-            }
-
-            @Override
-            public void onFailure(Call<RssGazetaFeed> call, Throwable t) {
-                callback.onRemoteDataNotAvailable();
-            }
-        });
-        return call;
-    }
-
     @Override
     protected Observable<List<Tiding>> execute(Retrofit retrofit) {
-        return null;
+        return Observable.create(subscriber -> {
+            RssGazetaRetrofitAdapter retrofitService = retrofit.create(RssGazetaRetrofitAdapter.class);
+            Call<RssGazetaFeed> call = retrofitService.getItems();
+            call.enqueue(new Callback<RssGazetaFeed>() {
+                @Override
+                public void onResponse(Call<RssGazetaFeed> call, Response<RssGazetaFeed> response) {
+                    RssGazetaFeed feed = response.body();
+                    List<RssGazetaItem> mItems = feed.getChannel().getGazetaItemList();
+
+                    GazetaSource source = new GazetaSource();
+                    List<Tiding> tidings = source.getTidings(mItems);
+                    if (!subscriber.isUnsubscribed()) {
+                        subscriber.onNext(tidings);
+                        subscriber.onCompleted();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<RssGazetaFeed> call, Throwable t) {
+                    if (!subscriber.isUnsubscribed()) {
+                        subscriber.onNext(new ArrayList<>());
+                        subscriber.onCompleted();
+                    }
+                }
+            });
+        });
     }
 
     @Override
