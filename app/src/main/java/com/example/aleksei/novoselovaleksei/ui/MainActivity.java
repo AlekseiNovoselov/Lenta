@@ -30,7 +30,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Create the presenter
         mLentaPresenter = new TidingsListPresenter(
-                Injection.provideTasksRepository(getApplicationContext()), tidingListFragment);
+                Injection.provideTasksRepository(getApplicationContext()),
+                tidingListFragment,
+                Injection.provideSchedulerProvider());
 
 
     }

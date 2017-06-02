@@ -38,7 +38,13 @@ public class TidingsListFragment extends Fragment implements TidingsListContract
     @Override
     public void onResume() {
         super.onResume();
-        mPresenter.start();
+        mPresenter.subscribe();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mPresenter.unsubscribe();
     }
 
     @Nullable
@@ -73,7 +79,7 @@ public class TidingsListFragment extends Fragment implements TidingsListContract
 
     @Override
     public void showLoadingTidingsError() {
-
+        int a = 2;
     }
 
     @Override

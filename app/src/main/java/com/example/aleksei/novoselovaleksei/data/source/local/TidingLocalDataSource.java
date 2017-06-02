@@ -13,12 +13,13 @@ import com.example.aleksei.novoselovaleksei.data.source.remote.common.BaseSource
 import java.util.ArrayList;
 import java.util.List;
 
+import rx.Observable;
+
 public class TidingLocalDataSource implements TidingDataSource {
     private static TidingLocalDataSource INSTANCE;
 
     private TidingsDbHelper mDbHelper;
 
-    // Prevent direct instantiation.
     private TidingLocalDataSource(@NonNull Context context) {
         mDbHelper = new TidingsDbHelper(context);
     }
@@ -59,49 +60,46 @@ public class TidingLocalDataSource implements TidingDataSource {
     }
 
     @Override
-    public void getTidings(@NonNull LoadTidingsCallback callback) {
-        List<Tiding> tidings = new ArrayList<>();
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+    public Observable<List<Tiding>> getTidings() {
+        return Observable.create(subscriber -> {
+            List<Tiding> tidings = new ArrayList<>();
+            SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
-        String[] projection = {
-                TidingsPersistenceContract.TidingEntry.COLUMN_NAME_TITLE,
-                TidingsPersistenceContract.TidingEntry.COLUMN_NAME_DESCRIPTION,
-                TidingsPersistenceContract.TidingEntry.COLUMN_NAME_PUBLICATION_DATE,
-                TidingsPersistenceContract.TidingEntry.COLUMN_NAME_SOURCE,
-                TidingsPersistenceContract.TidingEntry.COLUMN_NAME_IMAGE_URL
-        };
+            String[] projection = {
+                    TidingsPersistenceContract.TidingEntry.COLUMN_NAME_TITLE,
+                    TidingsPersistenceContract.TidingEntry.COLUMN_NAME_DESCRIPTION,
+                    TidingsPersistenceContract.TidingEntry.COLUMN_NAME_PUBLICATION_DATE,
+                    TidingsPersistenceContract.TidingEntry.COLUMN_NAME_SOURCE,
+                    TidingsPersistenceContract.TidingEntry.COLUMN_NAME_IMAGE_URL
+            };
 
-        Cursor c = db.query(
-                TidingsPersistenceContract.TidingEntry.TABLE_NAME, projection, null, null, null, null, TidingsPersistenceContract.TidingEntry.COLUMN_NAME_PUBLICATION_DATE);
+            Cursor c = db.query(
+                    TidingsPersistenceContract.TidingEntry.TABLE_NAME, projection, null, null, null, null, TidingsPersistenceContract.TidingEntry.COLUMN_NAME_PUBLICATION_DATE);
 
-        if (c != null && c.getCount() > 0) {
-            while (c.moveToNext()) {
-                String title = c.getString(c.getColumnIndexOrThrow(TidingsPersistenceContract.TidingEntry.COLUMN_NAME_TITLE));
-                String description =
-                        c.getString(c.getColumnIndexOrThrow(TidingsPersistenceContract.TidingEntry.COLUMN_NAME_DESCRIPTION));
-                Long publicationDate =
-                        c.getLong(c.getColumnIndexOrThrow(TidingsPersistenceContract.TidingEntry.COLUMN_NAME_PUBLICATION_DATE));
-                String imageUrl =
-                        c.getString(c.getColumnIndexOrThrow(TidingsPersistenceContract.TidingEntry.COLUMN_NAME_IMAGE_URL));
-                String source =
-                        c.getString(c.getColumnIndexOrThrow(TidingsPersistenceContract.TidingEntry.COLUMN_NAME_SOURCE));
+            if (c != null && c.getCount() > 0) {
+                while (c.moveToNext()) {
+                    String title = c.getString(c.getColumnIndexOrThrow(TidingsPersistenceContract.TidingEntry.COLUMN_NAME_TITLE));
+                    String description =
+                            c.getString(c.getColumnIndexOrThrow(TidingsPersistenceContract.TidingEntry.COLUMN_NAME_DESCRIPTION));
+                    Long publicationDate =
+                            c.getLong(c.getColumnIndexOrThrow(TidingsPersistenceContract.TidingEntry.COLUMN_NAME_PUBLICATION_DATE));
+                    String imageUrl =
+                            c.getString(c.getColumnIndexOrThrow(TidingsPersistenceContract.TidingEntry.COLUMN_NAME_IMAGE_URL));
+                    String source =
+                            c.getString(c.getColumnIndexOrThrow(TidingsPersistenceContract.TidingEntry.COLUMN_NAME_SOURCE));
 
-                Tiding task = new Tiding(title, publicationDate, description, imageUrl, BaseSource.Source.valueOf(source));
-                tidings.add(task);
+                    Tiding task = new Tiding(title, publicationDate, description, imageUrl, BaseSource.Source.valueOf(source));
+                    tidings.add(task);
+                }
             }
-        }
-        if (c != null) {
-            c.close();
-        }
+            if (c != null) {
+                c.close();
+            }
 
-        db.close();
-
-        if (tidings.isEmpty()) {
-            // This will be called if the table is new or just empty.
-            callback.onDataNotAvailable();
-        } else {
-            callback.onTidingLoaded(tidings);
-        }
+            db.close();
+            subscriber.onNext(tidings);
+            subscriber.onCompleted();
+        });
     }
 
     @Override

@@ -13,8 +13,8 @@ public class SourceFactory  {
 
     public SourceFactory() {
         sources = new ArrayList<>();
-        sources.add(new GazetaSource());
         sources.add(new LentaSource());
+        sources.add(new GazetaSource());
     }
 
     public List<BaseSource> getSources() {

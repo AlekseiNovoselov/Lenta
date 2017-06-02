@@ -5,12 +5,13 @@ import android.support.annotation.NonNull;
 import com.example.aleksei.novoselovaleksei.data.Tiding;
 import com.example.aleksei.novoselovaleksei.data.source.remote.common.BaseSource;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import rx.Observable;
 
 public class TidingRepository implements TidingDataSource {
 
@@ -23,7 +24,6 @@ public class TidingRepository implements TidingDataSource {
 
     private boolean mCacheIsDirty = false;
 
-    // Prevent direct instantiation.
     private TidingRepository(@NonNull TidingDataSource newsRemoteDataSource,
                              @NonNull TidingDataSource newsLocalDataSource) {
         mNewsRemoteDataSource = newsRemoteDataSource;
@@ -43,7 +43,6 @@ public class TidingRepository implements TidingDataSource {
         mNewsRemoteDataSource.saveTiding(tiding);
         mNewsLocalDataSource.saveTiding(tiding);
 
-        // Do in memory cache update to keep the app UI up to date
         if (mCachedTidings == null) {
             mCachedTidings = new LinkedHashMap<>();
         }
@@ -62,47 +61,41 @@ public class TidingRepository implements TidingDataSource {
     }
 
     @Override
-    public void getTidings(@NonNull final LoadTidingsCallback callback) {
-        // Respond immediately with cache if available and not dirty
+    public Observable<List<Tiding>> getTidings() {
         if (mCachedTidings != null && !mCacheIsDirty) {
-            callback.onTidingLoaded(new ArrayList<>(mCachedTidings.values()));
-            return;
+            return Observable.from(mCachedTidings.values()).toList();
+        } else if (mCachedTidings == null) {
+            mCachedTidings = new LinkedHashMap<>();
         }
 
-        if (mCacheIsDirty) {
-            // If the cache is dirty we need to fetch new data from the network.
-            getNewsFromRemoteDataSource(callback);
-        } else {
-            // Query the local storage if available. If not, query the network.
-            mNewsLocalDataSource.getTidings(new LoadTidingsCallback() {
-                @Override
-                public void onTidingLoaded(List<Tiding> tidings) {
-                    refreshCache(tidings);
-                    callback.onTidingLoaded(new ArrayList<>(mCachedTidings.values()));
-                }
+        Observable<List<Tiding>> remoteTasks = getAndSaveRemoteTasks();
 
-                @Override
-                public void onDataNotAvailable() {
-                    getNewsFromRemoteDataSource(callback);
-                }
-            });
+        if (mCacheIsDirty) {
+            return remoteTasks;
+        } else {
+            Observable<List<Tiding>> localTasks = getAndCacheLocalTasks();
+            return Observable.concat(localTasks, remoteTasks)
+                    .filter(tasks -> !tasks.isEmpty())
+                    .first();
         }
     }
 
-    private void getNewsFromRemoteDataSource(@NonNull final LoadTidingsCallback callback) {
-        mNewsRemoteDataSource.getTidings(new LoadTidingsCallback() {
-            @Override
-            public void onTidingLoaded(List<Tiding> tidings) {
-                refreshCache(tidings);
-                refreshLocalDataSource(tidings);
-                callback.onTidingLoaded(new ArrayList<>(mCachedTidings.values()));
-            }
+    private Observable<List<Tiding>> getAndCacheLocalTasks() {
+        return mNewsLocalDataSource.getTidings()
+                .flatMap(tasks -> Observable.from(tasks)
+                        .doOnNext(tiding -> mCachedTidings.put(tiding.getTitle(), tiding))
+                        .toList());
+    }
 
-            @Override
-            public void onDataNotAvailable() {
-                callback.onDataNotAvailable();
-            }
-        });
+    private Observable<List<Tiding>> getAndSaveRemoteTasks() {
+        return mNewsRemoteDataSource.getTidings()
+                .flatMap(tasks -> Observable.from(tasks)
+                        .toList()
+                        .doOnNext(tidings -> {
+                            refreshCache(tidings);
+                            refreshLocalDataSource(tidings);
+                        }))
+                .doOnCompleted(() -> mCacheIsDirty = false);
     }
 
     private void refreshCache(List<Tiding> tidings) {

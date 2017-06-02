@@ -16,6 +16,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import rx.Observable;
 
 import static com.example.aleksei.novoselovaleksei.data.source.remote.gazeta.RssGazetaRetrofitAdapter.RSS_GAZETA_LINK;
 
@@ -25,7 +26,6 @@ public class GazetaSource extends BaseSource {
         super(RSS_GAZETA_LINK);
     }
 
-    @Override
     protected Call execute(Retrofit retrofit, final @NonNull TidingDataSource.RemoteLoadTidingsCallback callback) {
         RssGazetaRetrofitAdapter retrofitService = retrofit.create(RssGazetaRetrofitAdapter.class);
         Call<RssGazetaFeed> call = retrofitService.getItems();
@@ -46,6 +46,11 @@ public class GazetaSource extends BaseSource {
             }
         });
         return call;
+    }
+
+    @Override
+    protected Observable<List<Tiding>> execute(Retrofit retrofit) {
+        return null;
     }
 
     @Override

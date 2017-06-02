@@ -71,7 +71,7 @@ public class TidingRepositoryTest {
         TidingRepository.destroyInstance();
     }
 
-    @Test
+/*    @Test
     public void getTidings_repositoryCachesAfterFirstApiCall() {
         // Given a setup Captor to capture callbacks
         // When two calls are issued to the tidings repository
@@ -185,9 +185,6 @@ public class TidingRepositoryTest {
         verify(mTidingLocalDataSource, times(TIDINGS.size())).saveTiding(any(Tiding.class));
     }
 
-    /**
-     * Convenience method that issues two calls to the tidings repository
-     */
     private void twoTidingsLoadCallsToRepository(TidingDataSource.LoadTidingsCallback callback) {
         // When tidings are requested from repository
         mTidingRepository.getTidings(callback); // First call to API
@@ -216,4 +213,6 @@ public class TidingRepositoryTest {
         verify(dataSource).getTidings(mTidingCallbackCaptor.capture());
         mTidingCallbackCaptor.getValue().onTidingLoaded(tidings);
     }
+    */
+
 }

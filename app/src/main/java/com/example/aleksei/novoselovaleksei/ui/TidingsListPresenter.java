@@ -3,30 +3,51 @@ package com.example.aleksei.novoselovaleksei.ui;
 import android.support.annotation.NonNull;
 
 import com.example.aleksei.novoselovaleksei.data.Tiding;
-import com.example.aleksei.novoselovaleksei.data.source.TidingDataSource;
 import com.example.aleksei.novoselovaleksei.data.source.TidingRepository;
+import com.example.aleksei.novoselovaleksei.utils.schedulers.BaseSchedulerProvider;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
+
+import rx.Observable;
+import rx.Subscriber;
+import rx.Subscription;
+import rx.subscriptions.CompositeSubscription;
 
 public class TidingsListPresenter implements TidingsListContract.Presenter {
 
+    @NonNull
     private final TidingRepository mTidingsRepository;
+
+    @NonNull
     private final TidingsListContract.View mTidingListView;
+
+    @NonNull
+    private final BaseSchedulerProvider mSchedulerProvider;
+
+    @NonNull
+    private CompositeSubscription mSubscriptions;
 
     private boolean mFirstLoad = true;
 
     public TidingsListPresenter(@NonNull TidingRepository tidingRepository,
-                                @NonNull TidingsListFragment tidingListView) {
+                                @NonNull TidingsListFragment tidingListView,
+                                @NonNull BaseSchedulerProvider schedulerProvider) {
         mTidingsRepository = tidingRepository;
         mTidingListView = tidingListView;
+        mSchedulerProvider = schedulerProvider;
+        mSubscriptions = new CompositeSubscription();
         mTidingListView.setPresenter(this);
     }
 
     @Override
-    public void start() {
-        loadTidings(false);
+    public void subscribe() {
+        loadTidings(true);
+    }
+
+    @Override
+    public void unsubscribe() {
+        mSubscriptions.clear();
     }
 
     @Override
@@ -44,47 +65,39 @@ public class TidingsListPresenter implements TidingsListContract.Presenter {
             mTidingsRepository.refreshTidings();
         }
 
-        mTidingsRepository.getTidings(new TidingDataSource.LoadTidingsCallback() {
-            @Override
-            public void onTidingLoaded(List<Tiding> news) {
-                // The view may not be able to handle UI updates anymore
+        mSubscriptions.clear();
+        Subscription subscription = mTidingsRepository
+                .getTidings()
+                .flatMap(Observable::from)
+                .toList()
+                .subscribeOn(mSchedulerProvider.computation())
+                .observeOn(mSchedulerProvider.ui())
+                .subscribe(new Subscriber<List<Tiding>>() {
+                    @Override
+                    public void onCompleted() {
+                        mTidingListView.setLoadingIndicator(false);
+                    }
 
-                Collections.sort(news, new Comparator<Tiding>() {
-                    public int compare(Tiding left, Tiding right)  {
-                        return (int) right.getPublicationDate() - (int) left.getPublicationDate(); // The order depends on the direction of sorting.
+                    @Override
+                    public void onError(Throwable e) {
+                        mTidingListView.showLoadingTidingsError();
+                    }
+
+                    @Override
+                    public void onNext(List<Tiding> tidings) {
+                        processTidings(tidings);
                     }
                 });
 
-                if (!mTidingListView.isActive()) {
-                    return;
-                }
-                if (showLoadingUI) {
-                    mTidingListView.setLoadingIndicator(false);
-                }
-
-                processTidings(news);
-            }
-
-            @Override
-            public void onDataNotAvailable() {
-                // The view may not be able to handle UI updates anymore
-                if (!mTidingListView.isActive()) {
-                    return;
-                }
-                mTidingListView.showLoadingTidingsError();
-            }
-        });
+        mSubscriptions.add(subscription);
     }
 
-    private void processTidings(List<Tiding> tidings) {
+    private void processTidings(@NonNull List<Tiding> tidings) {
         if (tidings.isEmpty()) {
-            // Show a message indicating there are no tasks for that filter type.
             processEmptyTasks();
         } else {
-            // Show the list of tasks
+            Collections.sort(tidings, (left, right) -> (int) right.getPublicationDate() - (int) left.getPublicationDate());
             mTidingListView.showTidings(tidings);
-            // Set the filter label's text.
-            //showFilterLabel();
         }
     }
 

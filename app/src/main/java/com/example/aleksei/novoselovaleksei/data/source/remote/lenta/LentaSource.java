@@ -1,9 +1,6 @@
 package com.example.aleksei.novoselovaleksei.data.source.remote.lenta;
 
-import android.support.annotation.NonNull;
-
 import com.example.aleksei.novoselovaleksei.data.Tiding;
-import com.example.aleksei.novoselovaleksei.data.source.TidingDataSource;
 import com.example.aleksei.novoselovaleksei.data.source.remote.common.BaseSource;
 
 import java.text.ParseException;
@@ -15,6 +12,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import rx.Observable;
 
 import static com.example.aleksei.novoselovaleksei.data.source.remote.lenta.RssRetrofitAdapter.RSS_LENTA_LINK;
 
@@ -24,28 +22,34 @@ public class LentaSource extends BaseSource {
         super(RSS_LENTA_LINK);
     }
 
-    @Override
-    protected Call execute(Retrofit retrofit, @NonNull final TidingDataSource.RemoteLoadTidingsCallback callback) {
+    protected Observable<List<Tiding>> execute(Retrofit retrofit) {
+        return Observable.create(subscriber -> {
+            RssRetrofitAdapter retrofitService = retrofit.create(RssRetrofitAdapter.class);
+            Call<RssLentaFeed> call = retrofitService.getItems();
+            call.enqueue(new Callback<RssLentaFeed>() {
+                @Override
+                public void onResponse(Call<RssLentaFeed> call, Response<RssLentaFeed> response) {
+                    RssLentaFeed feed = response.body();
+                    List<RssLentaItem> mItems = feed.getChannel().getLentaItemList();
 
-        RssRetrofitAdapter retrofitService = retrofit.create(RssRetrofitAdapter.class);
-        Call<RssLentaFeed> call = retrofitService.getItems();
-        call.enqueue(new Callback<RssLentaFeed>() {
-            @Override
-            public void onResponse(Call<RssLentaFeed> call, Response<RssLentaFeed> response) {
-                RssLentaFeed feed = response.body();
-                List<RssLentaItem> mItems = feed.getChannel().getLentaItemList();
+                    LentaSource source = new LentaSource();
+                    List<Tiding> tidings = source.getTidings(mItems);
+                    if (!subscriber.isUnsubscribed()) {
+                        subscriber.onNext(tidings);
+                        subscriber.onCompleted();
+                    }
 
-                LentaSource source = new LentaSource();
-                List<Tiding> tidings = source.getTidings(mItems);
-                callback.onRemoteTidingLoaded(tidings);
-            }
+                }
 
-            @Override
-            public void onFailure(Call<RssLentaFeed> call, Throwable t) {
-                callback.onRemoteDataNotAvailable();
-            }
+                @Override
+                public void onFailure(Call<RssLentaFeed> call, Throwable t) {
+                    if (!subscriber.isUnsubscribed()) {
+                        subscriber.onNext(new ArrayList<>());
+                        subscriber.onCompleted();
+                    }
+                }
+            });
         });
-        return call;
     }
 
     @Override

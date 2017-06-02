@@ -1,11 +1,11 @@
 package com.example.aleksei.novoselovaleksei.data.source;
 
-import android.support.annotation.NonNull;
-
 import com.example.aleksei.novoselovaleksei.data.Tiding;
 import com.example.aleksei.novoselovaleksei.data.source.remote.common.BaseSource;
 
 import java.util.List;
+
+import rx.Observable;
 
 public interface TidingDataSource {
 
@@ -26,7 +26,7 @@ public interface TidingDataSource {
         void onRemoteDataNotAvailable();
     }
 
-    void getTidings(@NonNull LoadTidingsCallback callback);
+    Observable<List<Tiding>> getTidings();
 
     void refreshTidings();
 }

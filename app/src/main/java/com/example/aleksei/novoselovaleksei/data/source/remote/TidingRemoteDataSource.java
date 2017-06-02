@@ -1,7 +1,5 @@
 package com.example.aleksei.novoselovaleksei.data.source.remote;
 
-import android.support.annotation.NonNull;
-
 import com.example.aleksei.novoselovaleksei.data.Tiding;
 import com.example.aleksei.novoselovaleksei.data.source.TidingDataSource;
 import com.example.aleksei.novoselovaleksei.data.source.remote.common.BaseSource;
@@ -11,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 
 import retrofit2.Call;
+import rx.Observable;
 
 public class TidingRemoteDataSource implements TidingDataSource {
 
@@ -39,31 +38,37 @@ public class TidingRemoteDataSource implements TidingDataSource {
     private List<Call> mCalls = Collections.synchronizedList(new ArrayList<Call>());
 
     @Override
-    public void getTidings(@NonNull final LoadTidingsCallback callback) {
+    public Observable<List<Tiding>> getTidings() {
 
-        for (Call call: mCalls) {
-            if (call.isExecuted()) {
-                call.cancel();
-            }
-        }
-        mCalls.clear();
+//        for (Call call: mCalls) {
+//            if (call.isExecuted()) {
+//                call.cancel();
+//            }
+//        }
+//        mCalls.clear();
+
+
 
         SourceFactory sourceFactory = new SourceFactory();
-        for (BaseSource baseSource : sourceFactory.getSources()) {
-            final Call call = baseSource.load(new TidingDataSource.RemoteLoadTidingsCallback() {
+        BaseSource baseSource = sourceFactory.getSources().get(0);
+        return baseSource.load();
 
-                @Override
-                public void onRemoteTidingLoaded(List<Tiding> tidings) {
-                    callback.onTidingLoaded(tidings);
-                }
+//        for (BaseSource baseSource : sourceFactory.getSources()) {
+//            final Call call = baseSource.load(new TidingDataSource.RemoteLoadTidingsCallback() {
+//
+//                @Override
+//                public void onRemoteTidingLoaded(List<Tiding> tidings) {
+//                    callback.onTidingLoaded(tidings);
+//                }
+//
+//                @Override
+//                public void onRemoteDataNotAvailable() {
+//                    callback.onDataNotAvailable();
+//                }
+//            });
+//            //mCalls.add(call);
+//        }
 
-                @Override
-                public void onRemoteDataNotAvailable() {
-                    callback.onDataNotAvailable();
-                }
-            });
-            mCalls.add(call);
-        }
     }
 
     @Override
