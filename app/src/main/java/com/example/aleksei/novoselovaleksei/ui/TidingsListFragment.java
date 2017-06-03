@@ -11,6 +11,8 @@ import android.view.ViewGroup;
 
 import com.example.aleksei.novoselovaleksei.R;
 import com.example.aleksei.novoselovaleksei.data.Tiding;
+import com.example.aleksei.novoselovaleksei.ui.holders.helper.DescriptionExpandableView;
+import com.example.aleksei.novoselovaleksei.ui.holders.helper.TidingItemExpandableView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +22,7 @@ public class TidingsListFragment extends Fragment implements TidingsListContract
     private TidingsListContract.Presenter mPresenter;
 
     RecyclerView recyclerView;
-    TidingsListAdapter adapter;
+    TidingListAdapter adapter;
 
     public TidingsListFragment() {
         // Requires empty public constructor
@@ -56,8 +58,7 @@ public class TidingsListFragment extends Fragment implements TidingsListContract
         recyclerView.setLayoutManager(layoutMgr);
 
         List<Tiding> tidings =  new ArrayList<>();
-        adapter = new TidingsListAdapter(tidings);
-        recyclerView.setAdapter(adapter);
+        showTidings(tidings);
 
         return root;
     }
@@ -79,12 +80,21 @@ public class TidingsListFragment extends Fragment implements TidingsListContract
 
     @Override
     public void showLoadingTidingsError() {
-        int a = 2;
+
     }
 
     @Override
     public void showTidings(List<Tiding> tidings) {
-        adapter = new TidingsListAdapter(tidings);
+        List<TidingItemExpandableView> groups = new ArrayList<>();
+
+        for (Tiding tiding : tidings) {
+            List<DescriptionExpandableView> items = new ArrayList<>();
+            items.add(new DescriptionExpandableView(tiding.getDescription()));
+            TidingItemExpandableView tidingV = new TidingItemExpandableView(tiding.getTitle(), items);
+            groups.add(tidingV);
+        }
+
+        adapter = new TidingListAdapter(groups, tidings);
         recyclerView.setAdapter(adapter);
     }
 }
