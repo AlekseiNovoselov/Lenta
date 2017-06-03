@@ -11,19 +11,13 @@ public interface TidingDataSource {
 
     void saveTiding(Tiding tiding);
 
-    void deleteAllTidings(BaseSource.Source source);
+    void deleteAllTidings(String source);
 
     interface LoadTidingsCallback {
 
         void onTidingLoaded(List<Tiding> tidings);
 
         void onDataNotAvailable();
-    }
-
-    interface RemoteLoadTidingsCallback {
-        void onRemoteTidingLoaded(List<Tiding> tidings);
-
-        void onRemoteDataNotAvailable();
     }
 
     Observable<List<Tiding>> getTidings();

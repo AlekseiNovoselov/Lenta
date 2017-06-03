@@ -53,11 +53,6 @@ public class GazetaSource extends BaseSource {
         });
     }
 
-    @Override
-    public Source getSource() {
-        return Source.GAZETA;
-    }
-
     public List<Tiding> getTidings(List<RssGazetaItem> mItems) {
         List<Tiding> tidings = new ArrayList<>();
         for (RssBaseItem item: mItems) {

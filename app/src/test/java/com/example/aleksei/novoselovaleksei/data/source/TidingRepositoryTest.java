@@ -26,9 +26,9 @@ public class TidingRepositoryTest {
 
     private List<Tiding> TIDINGS = Arrays.asList(
             new Tiding("Title1", 100L,
-                    "Description1", null, BaseSource.Source.LENTA),
+                    "Description1", null, "lenta.ru"),
             new Tiding("Title2", 200L,
-                    "Description2", null, BaseSource.Source.LENTA));
+                    "Description2", null, "gazeta.ru"));
 
     private TidingRepository mTidingRepository;
 

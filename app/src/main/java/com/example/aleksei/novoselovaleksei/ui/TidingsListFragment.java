@@ -1,5 +1,7 @@
 package com.example.aleksei.novoselovaleksei.ui;
 
+import android.content.Context;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -54,6 +56,7 @@ public class TidingsListFragment extends Fragment implements TidingsListContract
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.lenta_fragment, container, false);
         recyclerView = (RecyclerView) root.findViewById(R.id.tidingsList);
+        recyclerView.addItemDecoration(new MarginDecoration(getContext()));
         LinearLayoutManager layoutMgr = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutMgr);
 
@@ -96,5 +99,19 @@ public class TidingsListFragment extends Fragment implements TidingsListContract
 
         adapter = new TidingListAdapter(groups, tidings);
         recyclerView.setAdapter(adapter);
+    }
+
+    public class MarginDecoration extends RecyclerView.ItemDecoration {
+        private int margin;
+
+        public MarginDecoration(Context context) {
+            margin = context.getResources().getDimensionPixelSize(R.dimen.item_margin);
+        }
+
+        @Override
+        public void getItemOffsets(
+                Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
+            outRect.set(margin, margin, margin, margin);
+        }
     }
 }

@@ -10,7 +10,7 @@ import com.thoughtbot.expandablerecyclerview.viewholders.GroupViewHolder;
 public class TidingViewHolder extends GroupViewHolder {
 
     public TextView titleTextField;
-    public TextView descriptionTextField;
+    public TextView sourceTextField;
 
     public ImageView imageView;
     public TextView publicationDateTextField;
@@ -19,7 +19,7 @@ public class TidingViewHolder extends GroupViewHolder {
         super(itemView);
         titleTextField = (TextView) itemView.findViewById(R.id.title);
         imageView = (ImageView) itemView.findViewById(R.id.image);
-        descriptionTextField = (TextView) itemView.findViewById(R.id.description);
+        sourceTextField = (TextView) itemView.findViewById(R.id.source);
         publicationDateTextField = (TextView) itemView.findViewById(R.id.pubdate);
     }
 

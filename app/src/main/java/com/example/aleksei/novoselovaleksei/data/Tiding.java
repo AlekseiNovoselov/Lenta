@@ -1,14 +1,12 @@
 package com.example.aleksei.novoselovaleksei.data;
 
-import com.example.aleksei.novoselovaleksei.data.source.remote.common.BaseSource;
-
 public class Tiding {
 
     private String mTitle;
     private long mPublicationDate;
     private String mDescription;
     private String mImageUrl;
-    private BaseSource.Source mSource;
+    private String mSource;
 
     public String getImageUrl() { return mImageUrl;}
 
@@ -22,11 +20,11 @@ public class Tiding {
         return mDescription;
     }
 
-    public BaseSource.Source getSource() {
+    public String getSource() {
         return mSource;
     }
 
-    public Tiding(String title, long publicationData, String description, String imageUrl, BaseSource.Source source) {
+    public Tiding(String title, long publicationData, String description, String imageUrl, String source) {
         mTitle = title;
         mPublicationDate = publicationData;
         mDescription = description;

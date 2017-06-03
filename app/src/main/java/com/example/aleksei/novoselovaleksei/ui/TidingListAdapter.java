@@ -35,7 +35,7 @@ public class TidingListAdapter extends ExpandableRecyclerViewAdapter<TidingViewH
     @Override
     public DescriptionViewHolder onCreateChildViewHolder(ViewGroup viewGroup, int i) {
         View view = LayoutInflater.from(viewGroup.getContext())
-                .inflate(R.layout.list_item_description, viewGroup, false);
+                .inflate(R.layout.tiding_item_description, viewGroup, false);
         return new DescriptionViewHolder(view);
     }
 
@@ -56,7 +56,9 @@ public class TidingListAdapter extends ExpandableRecyclerViewAdapter<TidingViewH
         Picasso.with(holder.imageView.getContext())
                 .load(item.getImageUrl())
                 .into(holder.imageView);
-        holder.descriptionTextField.setText(item.getDescription());
+        if (item.getSource() != null) {
+            holder.sourceTextField.setText(item.getSource());
+        }
         holder.publicationDateTextField.setText(String.valueOf(item.getPublicationDate()));
     }
 }

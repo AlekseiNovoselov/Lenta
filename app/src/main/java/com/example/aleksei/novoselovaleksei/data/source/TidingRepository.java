@@ -3,7 +3,6 @@ package com.example.aleksei.novoselovaleksei.data.source;
 import android.support.annotation.NonNull;
 
 import com.example.aleksei.novoselovaleksei.data.Tiding;
-import com.example.aleksei.novoselovaleksei.data.source.remote.common.BaseSource;
 
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -20,7 +19,7 @@ public class TidingRepository implements TidingDataSource {
     private final TidingDataSource mNewsLocalDataSource;
     private final TidingDataSource mNewsRemoteDataSource;
 
-    Map<String, Tiding> mCachedTidings;
+    private Map<String, Tiding> mCachedTidings;
 
     private boolean mCacheIsDirty = false;
 
@@ -50,7 +49,7 @@ public class TidingRepository implements TidingDataSource {
     }
 
     @Override
-    public void deleteAllTidings(BaseSource.Source source) {
+    public void deleteAllTidings(String source) {
         mNewsRemoteDataSource.deleteAllTidings(source);
         mNewsLocalDataSource.deleteAllTidings(source);
 
@@ -92,8 +91,10 @@ public class TidingRepository implements TidingDataSource {
                 .flatMap(tasks -> Observable.from(tasks)
                         .toList()
                         .doOnNext(tidings -> {
-                            refreshCache(tidings);
-                            refreshLocalDataSource(tidings);
+                            if (tidings.size() > 0) {
+                                refreshCache(tidings);
+                                refreshLocalDataSource(tidings);
+                            }
                         }))
                 .doOnCompleted(() -> mCacheIsDirty = false);
     }
@@ -109,10 +110,10 @@ public class TidingRepository implements TidingDataSource {
         mCacheIsDirty = false;
     }
 
-    private void clear(Map<String, Tiding> mCachedTidings, BaseSource.Source source) {
+    private void clear(Map<String, Tiding> mCachedTidings, String source) {
         Set<String> toRemove = new HashSet<>();
         for (Tiding tiding : mCachedTidings.values()) {
-            if (tiding.getSource() == source) {
+            if (tiding.getSource().equals(source)) {
                 toRemove.add(tiding.getTitle());
             }
         }

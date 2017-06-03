@@ -1,10 +1,9 @@
 package com.example.aleksei.novoselovaleksei.data.source.remote.common;
 
-import android.support.annotation.NonNull;
-
 import com.example.aleksei.novoselovaleksei.data.Tiding;
-import com.example.aleksei.novoselovaleksei.data.source.TidingDataSource;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -44,10 +43,13 @@ public abstract class BaseSource {
 
     abstract protected Observable<List<Tiding>> execute(Retrofit retrofit);
 
-
-    public enum Source {
-        LENTA, GAZETA
+    protected String getSource() {
+        try {
+            URL aURL = new URL(mBaseUrl);
+            return aURL.getHost();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
-
-    protected abstract Source getSource();
 }

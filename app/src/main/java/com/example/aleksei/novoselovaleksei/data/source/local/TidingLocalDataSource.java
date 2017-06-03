@@ -61,17 +61,17 @@ public class TidingLocalDataSource implements TidingDataSource {
         values.put(COLUMN_NAME_TITLE, tiding.getTitle());
         values.put(COLUMN_NAME_DESCRIPTION, tiding.getDescription());
         values.put(COLUMN_NAME_PUBLICATION_DATE, tiding.getPublicationDate());
-        values.put(COLUMN_NAME_SOURCE, tiding.getSource().toString());
+        values.put(COLUMN_NAME_SOURCE, tiding.getSource());
         values.put(COLUMN_NAME_IMAGE_URL, tiding.getImageUrl());
 
         mDatabaseHelper.insert(TABLE_NAME, values, CONFLICT_REPLACE);
     }
 
     @Override
-    public void deleteAllTidings(BaseSource.Source source) {
+    public void deleteAllTidings(String source) {
 
         String whereClause = COLUMN_NAME_SOURCE + " = ?";
-        String[] whereArgs = { source.toString() };
+        String[] whereArgs = { source };
         mDatabaseHelper.delete(TABLE_NAME, whereClause, whereArgs);
     }
 
@@ -82,7 +82,7 @@ public class TidingLocalDataSource implements TidingDataSource {
         String imageUrl = c.getString(c.getColumnIndexOrThrow(COLUMN_NAME_IMAGE_URL));
         String source = c.getString(c.getColumnIndexOrThrow(COLUMN_NAME_SOURCE));
 
-        return new Tiding(title, publicationDate, description, imageUrl, BaseSource.Source.valueOf(source));
+        return new Tiding(title, publicationDate, description, imageUrl, source);
     }
 
     @Override

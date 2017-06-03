@@ -29,7 +29,7 @@ public class TidingRemoteDataSource implements TidingDataSource {
     }
 
     @Override
-    public void deleteAllTidings(BaseSource.Source source) {
+    public void deleteAllTidings(String source) {
 
     }
 

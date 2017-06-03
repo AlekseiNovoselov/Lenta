@@ -12,7 +12,6 @@ public class SchedulerProvider implements BaseSchedulerProvider {
     @Nullable
     private static SchedulerProvider INSTANCE;
 
-    // Prevent direct instantiation.
     private SchedulerProvider() {
     }
 

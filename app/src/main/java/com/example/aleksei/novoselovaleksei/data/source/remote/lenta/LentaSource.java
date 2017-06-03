@@ -52,11 +52,6 @@ public class LentaSource extends BaseSource {
         });
     }
 
-    @Override
-    public Source getSource() {
-        return Source.LENTA;
-    }
-
     private List<Tiding> getTidings(List<RssLentaItem> mItems) {
         List<Tiding> tidings = new ArrayList<>();
         for (RssLentaItem item: mItems) {
