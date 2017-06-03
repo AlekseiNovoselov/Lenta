@@ -1,8 +1,10 @@
 package com.example.aleksei.novoselovaleksei.data.source;
 
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.example.aleksei.novoselovaleksei.data.Tiding;
+import com.example.aleksei.novoselovaleksei.utils.schedulers.BaseSchedulerProvider;
 
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -18,21 +20,25 @@ public class TidingRepository implements TidingDataSource {
 
     private final TidingDataSource mNewsLocalDataSource;
     private final TidingDataSource mNewsRemoteDataSource;
+    private final BaseSchedulerProvider schedulerProvider;
 
     private Map<String, Tiding> mCachedTidings;
 
     private boolean mCacheIsDirty = false;
 
     private TidingRepository(@NonNull TidingDataSource newsRemoteDataSource,
-                             @NonNull TidingDataSource newsLocalDataSource) {
+                             @NonNull TidingDataSource newsLocalDataSource,
+                             @NonNull BaseSchedulerProvider baseSchedulerProvider) {
         mNewsRemoteDataSource = newsRemoteDataSource;
         mNewsLocalDataSource = newsLocalDataSource;
+        schedulerProvider= baseSchedulerProvider;
     }
 
     public static TidingRepository getInstance(TidingDataSource newsRemoteDataSource,
-                                               TidingDataSource newsLocalDataSource) {
+                                               TidingDataSource newsLocalDataSource,
+                                               BaseSchedulerProvider baseSchedulerProvider) {
         if (INSTANCE == null) {
-            INSTANCE = new TidingRepository(newsRemoteDataSource, newsLocalDataSource);
+            INSTANCE = new TidingRepository(newsRemoteDataSource, newsLocalDataSource, baseSchedulerProvider);
         }
         return INSTANCE;
     }
@@ -95,7 +101,7 @@ public class TidingRepository implements TidingDataSource {
                                 refreshCache(tidings);
                                 refreshLocalDataSource(tidings);
                             }
-                        }))
+                        }).subscribeOn(schedulerProvider.computation()))
                 .doOnCompleted(() -> mCacheIsDirty = false);
     }
 

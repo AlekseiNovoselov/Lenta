@@ -1,6 +1,7 @@
 package com.example.aleksei.novoselovaleksei.ui;
 
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.example.aleksei.novoselovaleksei.data.Tiding;
 import com.example.aleksei.novoselovaleksei.data.source.TidingRepository;
@@ -42,7 +43,7 @@ public class TidingsListPresenter implements TidingsListContract.Presenter {
 
     @Override
     public void subscribe() {
-        loadTidings(true);
+        loadTidings(false);
     }
 
     @Override

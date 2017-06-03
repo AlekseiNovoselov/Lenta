@@ -1,25 +1,19 @@
 package com.example.aleksei.novoselovaleksei.data.source;
 
 import com.example.aleksei.novoselovaleksei.data.Tiding;
-import com.example.aleksei.novoselovaleksei.data.source.remote.common.BaseSource;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class TidingRepositoryTest {
@@ -63,7 +57,7 @@ public class TidingRepositoryTest {
 
         // Get a reference to the class under test
         mTidingRepository= TidingRepository.getInstance(
-                mTidingRemoteDataSource, mTidingLocalDataSource);
+                mTidingRemoteDataSource, mTidingLocalDataSource, provideSchedulerProvider());
     }
 
     @After
