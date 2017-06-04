@@ -2,13 +2,15 @@ package com.example.aleksei.novoselovaleksei.ui;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,8 +32,13 @@ public class TidingsListFragment extends Fragment implements TidingsListContract
 
     private SwipeRefreshLayout srl;
 
+    private Bundle mSavedInstanceState;
+
+    private View root;
+    private View noTidings;
+
     public TidingsListFragment() {
-        // Requires empty public constructor
+
     }
 
     public static TidingsListFragment newInstance() {
@@ -58,8 +65,9 @@ public class TidingsListFragment extends Fragment implements TidingsListContract
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.lenta_fragment, container, false);
+        root = inflater.inflate(R.layout.tiding_list_fragment, container, false);
         recyclerView = (RecyclerView) root.findViewById(R.id.tidings_rv);
+        noTidings = root.findViewById(R.id.no_tidings);
         recyclerView.addItemDecoration(new MarginDecoration(getContext()));
         LinearLayoutManager layoutMgr = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutMgr);
@@ -69,7 +77,7 @@ public class TidingsListFragment extends Fragment implements TidingsListContract
                 (ScrollChildSwipeRefreshLayout) srl;
         swipeRefreshLayout.setScrollUpChild(recyclerView);
 
-        swipeRefreshLayout.setOnRefreshListener(() -> mPresenter.loadTidings(true));
+        swipeRefreshLayout.setOnRefreshListener(() -> mPresenter.refreshTidings());
 
         List<Tiding> tidings =  new ArrayList<>();
         showTidings(tidings);
@@ -92,12 +100,22 @@ public class TidingsListFragment extends Fragment implements TidingsListContract
 
     @Override
     public void showNoTidings() {
+        recyclerView.setVisibility(View.GONE);
+        noTidings.setVisibility(View.VISIBLE);
+    }
 
+    @Override
+    public void showNoInternet() {
+        showMessage(getString(R.string.no_internet_error));
     }
 
     @Override
     public void showLoadingTidingsError() {
+        showMessage(getString(R.string.loading_tidings_error));
+    }
 
+    private void showMessage(String message) {
+        Snackbar.make(root, message, Snackbar.LENGTH_SHORT).show();
     }
 
     @Override
@@ -113,6 +131,13 @@ public class TidingsListFragment extends Fragment implements TidingsListContract
 
         adapter = new TidingListAdapter(groups, tidings);
         recyclerView.setAdapter(adapter);
+
+        if (mSavedInstanceState != null) {
+            adapter.onRestoreInstanceState(mSavedInstanceState);
+        }
+
+        recyclerView.setVisibility(View.VISIBLE);
+        noTidings.setVisibility(View.GONE);
     }
 
     public class MarginDecoration extends RecyclerView.ItemDecoration {
@@ -127,5 +152,27 @@ public class TidingsListFragment extends Fragment implements TidingsListContract
                 Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
             outRect.set(margin, margin, margin, margin);
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        adapter.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (savedInstanceState != null) {
+            mSavedInstanceState = savedInstanceState;
+        }
+    }
+
+    @Override
+    public boolean isInternetAvailable() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
+        return activeNetwork != null
+                && activeNetwork.isConnectedOrConnecting();
     }
 }

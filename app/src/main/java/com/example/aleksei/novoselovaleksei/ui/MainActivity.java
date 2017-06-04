@@ -11,8 +11,6 @@ public class MainActivity extends AppCompatActivity {
 
     private TidingsListPresenter mLentaPresenter;
 
-    private static final String CURRENT_FILTERING_KEY = "CURRENT_FILTERING_KEY";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -22,18 +20,14 @@ public class MainActivity extends AppCompatActivity {
                 (TidingsListFragment) getSupportFragmentManager().findFragmentById(R.id.contentFrame);
 
         if (tidingListFragment == null) {
-            // Create the fragment
             tidingListFragment = TidingsListFragment.newInstance();
             ActivityUtils.addFragmentToActivity(
                     getSupportFragmentManager(), tidingListFragment, R.id.contentFrame);
         }
 
-        // Create the presenter
         mLentaPresenter = new TidingsListPresenter(
                 Injection.provideTasksRepository(getApplicationContext()),
                 tidingListFragment,
                 Injection.provideSchedulerProvider());
-
-
     }
 }

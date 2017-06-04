@@ -12,6 +12,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.example.aleksei.novoselovaleksei.Injection.provideSchedulerProvider;
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;

@@ -20,7 +20,7 @@ public class TidingViewHolder extends GroupViewHolder {
         titleTextField = (TextView) itemView.findViewById(R.id.title);
         imageView = (ImageView) itemView.findViewById(R.id.image);
         sourceTextField = (TextView) itemView.findViewById(R.id.source);
-        publicationDateTextField = (TextView) itemView.findViewById(R.id.pubdate);
+        publicationDateTextField = (TextView) itemView.findViewById(R.id.publication_date);
     }
 
 }

@@ -1,6 +1,5 @@
 package com.example.aleksei.novoselovaleksei.ui;
 
-
 import com.example.aleksei.novoselovaleksei.BasePresenter;
 import com.example.aleksei.novoselovaleksei.BaseView;
 import com.example.aleksei.novoselovaleksei.data.Tiding;
@@ -20,9 +19,16 @@ public interface TidingsListContract {
         void showLoadingTidingsError();
 
         void showTidings(List<Tiding> tidings);
+
+        void showNoInternet();
+
+        boolean isInternetAvailable();
     }
 
     interface Presenter extends BasePresenter {
+
         void loadTidings(boolean forceUpdate);
+
+        void refreshTidings();
     }
 }

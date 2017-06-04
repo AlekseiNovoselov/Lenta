@@ -1,7 +1,6 @@
 package com.example.aleksei.novoselovaleksei.ui;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.example.aleksei.novoselovaleksei.data.Tiding;
 import com.example.aleksei.novoselovaleksei.data.source.TidingRepository;
@@ -29,8 +28,6 @@ public class TidingsListPresenter implements TidingsListContract.Presenter {
     @NonNull
     private CompositeSubscription mSubscriptions;
 
-    private boolean mFirstLoad = true;
-
     public TidingsListPresenter(@NonNull TidingRepository tidingRepository,
                                 @NonNull TidingsListFragment tidingListView,
                                 @NonNull BaseSchedulerProvider schedulerProvider) {
@@ -53,9 +50,17 @@ public class TidingsListPresenter implements TidingsListContract.Presenter {
 
     @Override
     public void loadTidings(boolean forceUpdate) {
-        // Simplification for sample: a network reload will be forced on first load.
-        loadTidings(forceUpdate || mFirstLoad, true);
-        mFirstLoad = false;
+        loadTidings(forceUpdate, true);
+    }
+
+    @Override
+    public void refreshTidings() {
+        if (!mTidingListView.isInternetAvailable()) {
+            mTidingListView.showNoInternet();
+            mTidingListView.setLoadingIndicator(false);
+        } else {
+            loadTidings(true);
+        }
     }
 
     private void loadTidings(boolean forceUpdate, final boolean showLoadingUI) {
@@ -94,6 +99,7 @@ public class TidingsListPresenter implements TidingsListContract.Presenter {
     }
 
     private void processTidings(@NonNull List<Tiding> tidings) {
+        mTidingListView.setLoadingIndicator(false);
         if (tidings.isEmpty()) {
             processEmptyTasks();
         } else {
@@ -105,6 +111,4 @@ public class TidingsListPresenter implements TidingsListContract.Presenter {
     private void processEmptyTasks() {
         mTidingListView.showNoTidings();
     }
-
-
 }

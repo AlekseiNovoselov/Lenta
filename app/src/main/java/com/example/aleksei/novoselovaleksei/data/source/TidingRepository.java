@@ -1,7 +1,6 @@
 package com.example.aleksei.novoselovaleksei.data.source;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.example.aleksei.novoselovaleksei.data.Tiding;
 import com.example.aleksei.novoselovaleksei.utils.schedulers.BaseSchedulerProvider;
@@ -80,7 +79,6 @@ public class TidingRepository implements TidingDataSource {
         } else {
             Observable<List<Tiding>> localTasks = getAndCacheLocalTasks();
             return Observable.concat(localTasks, remoteTasks)
-                    .filter(tasks -> !tasks.isEmpty())
                     .first();
         }
     }
@@ -101,7 +99,8 @@ public class TidingRepository implements TidingDataSource {
                                 refreshCache(tidings);
                                 refreshLocalDataSource(tidings);
                             }
-                        }).subscribeOn(schedulerProvider.computation()))
+                        })
+                        .subscribeOn(schedulerProvider.computation()))
                 .doOnCompleted(() -> mCacheIsDirty = false);
     }
 

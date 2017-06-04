@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">NovoselovAleksei</string>
+    <string name="loading_tidings_error">Error while loading tidings</string>
+    <string name="no_tidings_all">There is no tidings</string>
+    <string name="no_internet_error">No Internet connection</string>
 </resources>
