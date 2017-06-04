@@ -29,7 +29,7 @@ public class TidingsListPresenter implements TidingsListContract.Presenter {
     private CompositeSubscription mSubscriptions;
 
     public TidingsListPresenter(@NonNull TidingRepository tidingRepository,
-                                @NonNull TidingsListFragment tidingListView,
+                                @NonNull TidingsListContract.View tidingListView,
                                 @NonNull BaseSchedulerProvider schedulerProvider) {
         mTidingsRepository = tidingRepository;
         mTidingListView = tidingListView;
@@ -99,16 +99,15 @@ public class TidingsListPresenter implements TidingsListContract.Presenter {
     }
 
     private void processTidings(@NonNull List<Tiding> tidings) {
-        mTidingListView.setLoadingIndicator(false);
         if (tidings.isEmpty()) {
-            processEmptyTasks();
+            processEmptyTidings();
         } else {
             Collections.sort(tidings, (left, right) -> (int) right.getPublicationDate() - (int) left.getPublicationDate());
             mTidingListView.showTidings(tidings);
         }
     }
 
-    private void processEmptyTasks() {
+    private void processEmptyTidings() {
         mTidingListView.showNoTidings();
     }
 }
