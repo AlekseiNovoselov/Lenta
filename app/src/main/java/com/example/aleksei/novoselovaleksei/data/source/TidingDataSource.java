@@ -13,13 +13,6 @@ public interface TidingDataSource {
 
     void deleteAllTidings(String source);
 
-    interface LoadTidingsCallback {
-
-        void onTidingLoaded(List<Tiding> tidings);
-
-        void onDataNotAvailable();
-    }
-
     Observable<List<Tiding>> getTidings();
 
     void refreshTidings();

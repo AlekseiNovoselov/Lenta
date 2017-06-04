@@ -1,6 +1,8 @@
 package com.example.aleksei.novoselovaleksei.data.source;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 
 import com.example.aleksei.novoselovaleksei.data.Tiding;
 import com.example.aleksei.novoselovaleksei.utils.schedulers.BaseSchedulerProvider;
@@ -15,37 +17,45 @@ import rx.Observable;
 
 public class TidingRepository implements TidingDataSource {
 
+    @Nullable
     private static TidingRepository INSTANCE = null;
 
-    private final TidingDataSource mNewsLocalDataSource;
-    private final TidingDataSource mNewsRemoteDataSource;
+    @NonNull
+    private final TidingDataSource mLocalDataSource;
+
+    @NonNull
+    private final TidingDataSource mRemoteDataSource;
+
+    @NonNull
     private final BaseSchedulerProvider schedulerProvider;
 
-    private Map<String, Tiding> mCachedTidings;
+    @Nullable
+    Map<String, Tiding> mCachedTidings;
 
-    private boolean mCacheIsDirty = false;
+    @VisibleForTesting
+    boolean mCacheIsDirty = false;
 
-    private TidingRepository(@NonNull TidingDataSource newsRemoteDataSource,
-                             @NonNull TidingDataSource newsLocalDataSource,
+    private TidingRepository(@NonNull TidingDataSource remoteDataSource,
+                             @NonNull TidingDataSource localDataSource,
                              @NonNull BaseSchedulerProvider baseSchedulerProvider) {
-        mNewsRemoteDataSource = newsRemoteDataSource;
-        mNewsLocalDataSource = newsLocalDataSource;
+        mRemoteDataSource = remoteDataSource;
+        mLocalDataSource = localDataSource;
         schedulerProvider= baseSchedulerProvider;
     }
 
-    public static TidingRepository getInstance(TidingDataSource newsRemoteDataSource,
-                                               TidingDataSource newsLocalDataSource,
+    public static TidingRepository getInstance(TidingDataSource remoteDataSource,
+                                               TidingDataSource localDataSource,
                                                BaseSchedulerProvider baseSchedulerProvider) {
         if (INSTANCE == null) {
-            INSTANCE = new TidingRepository(newsRemoteDataSource, newsLocalDataSource, baseSchedulerProvider);
+            INSTANCE = new TidingRepository(remoteDataSource, localDataSource, baseSchedulerProvider);
         }
         return INSTANCE;
     }
 
     @Override
     public void saveTiding(@NonNull Tiding tiding) {
-        mNewsRemoteDataSource.saveTiding(tiding);
-        mNewsLocalDataSource.saveTiding(tiding);
+        mRemoteDataSource.saveTiding(tiding);
+        mLocalDataSource.saveTiding(tiding);
 
         if (mCachedTidings == null) {
             mCachedTidings = new LinkedHashMap<>();
@@ -55,8 +65,8 @@ public class TidingRepository implements TidingDataSource {
 
     @Override
     public void deleteAllTidings(String source) {
-        mNewsRemoteDataSource.deleteAllTidings(source);
-        mNewsLocalDataSource.deleteAllTidings(source);
+        mRemoteDataSource.deleteAllTidings(source);
+        mLocalDataSource.deleteAllTidings(source);
 
         if (mCachedTidings == null) {
             mCachedTidings = new LinkedHashMap<>();
@@ -72,27 +82,28 @@ public class TidingRepository implements TidingDataSource {
             mCachedTidings = new LinkedHashMap<>();
         }
 
-        Observable<List<Tiding>> remoteTasks = getAndSaveRemoteTasks();
+        Observable<List<Tiding>> remoteTidings = getAndSaveRemoteTidings();
 
         if (mCacheIsDirty) {
-            return remoteTasks;
+            return remoteTidings;
         } else {
-            Observable<List<Tiding>> localTasks = getAndCacheLocalTasks();
-            return Observable.concat(localTasks, remoteTasks)
+            Observable<List<Tiding>> localTidings = getAndCacheLocalTidings();
+            return Observable.concat(localTidings, remoteTidings)
+                    .filter(tidings -> !tidings.isEmpty())
                     .first();
         }
     }
 
-    private Observable<List<Tiding>> getAndCacheLocalTasks() {
-        return mNewsLocalDataSource.getTidings()
-                .flatMap(tasks -> Observable.from(tasks)
+    private Observable<List<Tiding>> getAndCacheLocalTidings() {
+        return mLocalDataSource.getTidings()
+                .flatMap(tidings -> Observable.from(tidings)
                         .doOnNext(tiding -> mCachedTidings.put(tiding.getTitle(), tiding))
                         .toList());
     }
 
-    private Observable<List<Tiding>> getAndSaveRemoteTasks() {
-        return mNewsRemoteDataSource.getTidings()
-                .flatMap(tasks -> Observable.from(tasks)
+    private Observable<List<Tiding>> getAndSaveRemoteTidings() {
+        return mRemoteDataSource.getTidings()
+                .flatMap(tidings1 -> Observable.from(tidings1)
                         .toList()
                         .doOnNext(tidings -> {
                             if (tidings.size() > 0) {
@@ -130,9 +141,9 @@ public class TidingRepository implements TidingDataSource {
     }
 
     private void refreshLocalDataSource(List<Tiding> tidings) {
-        mNewsLocalDataSource.deleteAllTidings(tidings.get(0).getSource());
-        for (Tiding news : tidings) {
-            mNewsLocalDataSource.saveTiding(news);
+        mLocalDataSource.deleteAllTidings(tidings.get(0).getSource());
+        for (Tiding tiding : tidings) {
+            mLocalDataSource.saveTiding(tiding);
         }
     }
 

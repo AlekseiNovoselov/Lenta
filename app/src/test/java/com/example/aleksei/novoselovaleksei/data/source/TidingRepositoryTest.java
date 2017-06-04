@@ -1,21 +1,33 @@
 package com.example.aleksei.novoselovaleksei.data.source;
 
 import com.example.aleksei.novoselovaleksei.data.Tiding;
+import com.example.aleksei.novoselovaleksei.data.source.remote.common.BaseSource;
 
 import org.junit.After;
 import org.junit.Before;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeUnit;
+
+import rx.Observable;
+import rx.observers.TestSubscriber;
 
 import static com.example.aleksei.novoselovaleksei.Injection.provideSchedulerProvider;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class TidingRepositoryTest {
 
@@ -27,38 +39,20 @@ public class TidingRepositoryTest {
 
     private TidingRepository mTidingRepository;
 
+    private TestSubscriber<List<Tiding>> mTidingsTestSubscriber;
+
     @Mock
     private TidingDataSource mTidingRemoteDataSource;
 
     @Mock
     private TidingDataSource mTidingLocalDataSource;
 
-    @Mock
-    private TidingDataSource.LoadTidingsCallback mLoadTidingsCallback;
-
-    /**
-     * {@link ArgumentCaptor} is a powerful Mockito API to capture argument values and use them to
-     * perform further actions or assertions on them.
-     */
-    @Captor
-    private ArgumentCaptor<TidingDataSource.LoadTidingsCallback> mTidingsCallbackCaptor;
-
-    /**
-     * {@link ArgumentCaptor} is a powerful Mockito API to capture argument values and use them to
-     * perform further actions or assertions on them.
-     */
-    @Captor
-    private ArgumentCaptor<TidingDataSource.LoadTidingsCallback> mTidingCallbackCaptor;
-
     @Before
     public void setupTidingsRepository() {
-        // Mockito has a very convenient way to inject mocks by using the @Mock annotation. To
-        // inject the mocks in the test the initMocks method needs to be called.
         MockitoAnnotations.initMocks(this);
-
-        // Get a reference to the class under test
         mTidingRepository= TidingRepository.getInstance(
                 mTidingRemoteDataSource, mTidingLocalDataSource, provideSchedulerProvider());
+        mTidingsTestSubscriber = new TestSubscriber<>();
     }
 
     @After
@@ -66,38 +60,58 @@ public class TidingRepositoryTest {
         TidingRepository.destroyInstance();
     }
 
-/*    @Test
-    public void getTidings_repositoryCachesAfterFirstApiCall() {
-        // Given a setup Captor to capture callbacks
-        // When two calls are issued to the tidings repository
-        twoTidingsLoadCallsToRepository(mLoadTidingsCallback);
+    @Test
+    public void getTasks_repositoryCachesAfterFirstSubscription_whenTidingsAvailableInLocalStorage() {
 
-        // Then tidings were only requested once from Service API
-        verify(mTidingRemoteDataSource).getTidings(any(TidingDataSource.LoadTidingsCallback.class));
+        setTidingsAvailable(mTidingLocalDataSource, TIDINGS);
+        setTidingsNotAvailable(mTidingRemoteDataSource);
+
+        TestSubscriber<List<Tiding>> testSubscriber1 = new TestSubscriber<>();
+        mTidingRepository.getTidings().subscribe(testSubscriber1);
+
+        TestSubscriber<List<Tiding>> testSubscriber2 = new TestSubscriber<>();
+        mTidingRepository.getTidings().subscribe(testSubscriber2);
+
+        verify(mTidingRemoteDataSource).getTidings();
+        verify(mTidingLocalDataSource).getTidings();
+
+        assertFalse(mTidingRepository.mCacheIsDirty);
+        testSubscriber1.assertValue(TIDINGS);
+        testSubscriber2.assertValue(TIDINGS);
+    }
+
+    @Test
+    public void getTasks_repositoryCachesAfterFirstSubscription_whenTidingsAvailableInRemoteStorage() {
+
+        setTidingsAvailable(mTidingRemoteDataSource, TIDINGS);
+        setTidingsNotAvailable(mTidingLocalDataSource);
+
+        mTidingRepository.getTidings().subscribe(mTidingsTestSubscriber);
+
+        verify(mTidingRemoteDataSource).getTidings();
+        verify(mTidingLocalDataSource).getTidings();
+
+        assertFalse(mTidingRepository.mCacheIsDirty);
+        mTidingsTestSubscriber.assertValue(TIDINGS);
+    }
+
+    private void setTidingsNotAvailable(TidingDataSource dataSource) {
+        when(dataSource.getTidings()).thenReturn(Observable.just(Collections.emptyList()));
+    }
+
+    private void setTidingsAvailable(TidingDataSource dataSource, List<Tiding> tidings) {
+        when(dataSource.getTidings()).thenReturn(Observable.just(tidings).concatWith(Observable.never()));
     }
 
     @Test
     public void getTidings_requestsAllTidingsFromLocalDataSource() {
-        // When tidings are requested from the tidings repository
-        mTidingRepository.getTidings(mLoadTidingsCallback);
+        setTidingsAvailable(mTidingLocalDataSource, TIDINGS);
+        setTidingsNotAvailable(mTidingRemoteDataSource);
 
-        // Then tidings are loaded from the local data source
-        verify(mTidingLocalDataSource).getTidings(any(TidingDataSource.LoadTidingsCallback.class));
-    }
+        mTidingRepository.getTidings().subscribe(mTidingsTestSubscriber);
 
-    @Test
-    public void saveTiding_savesTidingToServiceAPI() {
-        // Given a stub task with title and description
-        Tiding newTiding = new Tiding("Title", 100L,
-                "Some Task Description", null, BaseSource.Source.LENTA);
-
-        // When a task is saved to the tidings repository
-        mTidingRepository.saveTiding(newTiding);
-
-        // Then the service API and persistent repository are called and the cache is updated
-        verify(mTidingRemoteDataSource).saveTiding(newTiding);
-        verify(mTidingLocalDataSource).saveTiding(newTiding);
-        assertThat(mTidingRepository.mCachedTidings.size(), is(1));
+        verify(mTidingLocalDataSource).getTidings();
+        mTidingsTestSubscriber.assertValue(TIDINGS);
     }
 
     @Test
@@ -106,108 +120,63 @@ public class TidingRepositoryTest {
         mTidingRepository.mCachedTidings = new LinkedHashMap<>();
         mTidingRepository.mCachedTidings.put("TITLE1",
                 new Tiding("TITLE1",100L,
-                        "description1", null, BaseSource.Source.LENTA));
+                        "description1", null, "lenta.ru"));
         mTidingRepository.mCachedTidings.put("TITLE2",
                 new Tiding("TITLE2", 200L,
-                        "description2", null, BaseSource.Source.LENTA));
+                        "description2", null, "gazeta.ru"));
 
-        // When all tidings are deleted to the tidings repository
         mTidingRepository.deleteAllTidings(TIDINGS.get(0).getSource());
 
-        // Verify the data sources were called
         verify(mTidingRemoteDataSource).deleteAllTidings(TIDINGS.get(0).getSource());
         verify(mTidingLocalDataSource).deleteAllTidings(TIDINGS.get(0).getSource());
 
         assertThat(mTidingRepository.mCachedTidings.size(), is(0));
     }
 
+
     @Test
     public void getTidingsWithDirtyCache_tidingsAreRetrievedFromRemote() {
-        // When calling getTidings in the repository with dirty cache
-        mTidingRepository.refreshTidings();
-        mTidingRepository.getTidings(mLoadTidingsCallback);
 
-        // And the remote data source has data available
         setTidingsAvailable(mTidingRemoteDataSource, TIDINGS);
+        mTidingRepository.refreshTidings();
+        mTidingRepository.getTidings().subscribe(mTidingsTestSubscriber);
 
-        // Verify the tidings from the remote data source are returned, not the local
-        verify(mTidingLocalDataSource, never()).getTidings(mLoadTidingsCallback);
-        verify(mLoadTidingsCallback).onTidingLoaded(TIDINGS);
+        verify(mTidingLocalDataSource, never()).getTidings();
+        verify(mTidingRemoteDataSource).getTidings();
+        mTidingsTestSubscriber.assertValue(TIDINGS);
     }
+
 
     @Test
     public void getTidingsWithLocalDataSourceUnavailable_tidingsAreRetrievedFromRemote() {
-        // When calling getTidings in the repository
-        mTidingRepository.getTidings(mLoadTidingsCallback);
-
-        // And the local data source has no data available
-        setTidingsNotAvailable(mTidingLocalDataSource);
-
-        // And the remote data source has data available
         setTidingsAvailable(mTidingRemoteDataSource, TIDINGS);
+        setTidingsNotAvailable(mTidingLocalDataSource);
+        mTidingRepository.getTidings().subscribe(mTidingsTestSubscriber);
 
-        // Verify the tidings from the local data source are returned
-        verify(mLoadTidingsCallback).onTidingLoaded(TIDINGS);
+        verify(mTidingRemoteDataSource).getTidings();
+        mTidingsTestSubscriber.assertValue(TIDINGS);
     }
+
 
     @Test
     public void getTidingsWithBothDataSourcesUnavailable_firesOnDataUnavailable() {
-        // When calling getTidings in the repository
-        mTidingRepository.getTidings(mLoadTidingsCallback);
-
-        // And the local data source has no data available
         setTidingsNotAvailable(mTidingLocalDataSource);
-
-        // And the remote data source has no data available
         setTidingsNotAvailable(mTidingRemoteDataSource);
 
-        // Verify no data is returned
-        verify(mLoadTidingsCallback).onDataNotAvailable();
+        mTidingRepository.getTidings().subscribe(mTidingsTestSubscriber);
+
+        mTidingsTestSubscriber.assertNoValues();
     }
 
     @Test
     public void getTidings_refreshesLocalDataSource() {
-        // Mark cache as dirty to force a reload of data from remote data source.
+        setTidingsAvailable(mTidingRemoteDataSource, TIDINGS);
         mTidingRepository.refreshTidings();
 
-        // When calling getTidings in the repository
-        mTidingRepository.getTidings(mLoadTidingsCallback);
+        mTidingRepository.getTidings().subscribe(mTidingsTestSubscriber);
 
-        // Make the remote data source return data
-        setTidingsAvailable(mTidingRemoteDataSource, TIDINGS);
-
-        // Verify that the data fetched from the remote data source was saved in local.
         verify(mTidingLocalDataSource, times(TIDINGS.size())).saveTiding(any(Tiding.class));
+        mTidingsTestSubscriber.assertValue(TIDINGS);
     }
-
-    private void twoTidingsLoadCallsToRepository(TidingDataSource.LoadTidingsCallback callback) {
-        // When tidings are requested from repository
-        mTidingRepository.getTidings(callback); // First call to API
-
-        // Use the Mockito Captor to capture the callback
-        verify(mTidingLocalDataSource).getTidings(mTidingsCallbackCaptor.capture());
-
-        // Local data source doesn't have data yet
-        mTidingsCallbackCaptor.getValue().onDataNotAvailable();
-
-        // Verify the remote data source is queried
-        verify(mTidingRemoteDataSource).getTidings(mTidingsCallbackCaptor.capture());
-
-        // Trigger callback so tidings are cached
-        mTidingsCallbackCaptor.getValue().onTidingLoaded(TIDINGS);
-
-        mTidingRepository.getTidings(callback); // Second call to API
-    }
-
-    private void setTidingsNotAvailable(TidingDataSource dataSource) {
-        verify(dataSource).getTidings(mTidingsCallbackCaptor.capture());
-        mTidingsCallbackCaptor.getValue().onDataNotAvailable();
-    }
-
-    private void setTidingsAvailable(TidingDataSource dataSource, List<Tiding> tidings) {
-        verify(dataSource).getTidings(mTidingCallbackCaptor.capture());
-        mTidingCallbackCaptor.getValue().onTidingLoaded(tidings);
-    }
-    */
 
 }

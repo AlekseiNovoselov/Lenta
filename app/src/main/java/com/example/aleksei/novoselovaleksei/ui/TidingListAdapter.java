@@ -50,6 +50,9 @@ public class TidingListAdapter extends ExpandableRecyclerViewAdapter<TidingViewH
     @Override
     public void onBindGroupViewHolder(TidingViewHolder holder, int i, ExpandableGroup expandableGroup) {
 
+        if (i >= tidings.size() ) {
+            return;
+        }
         Tiding item = tidings.get(i);
 
         holder.titleTextField.setText(item.getTitle());
