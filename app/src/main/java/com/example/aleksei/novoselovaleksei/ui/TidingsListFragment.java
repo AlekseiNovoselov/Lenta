@@ -32,8 +32,6 @@ public class TidingsListFragment extends Fragment implements TidingsListContract
 
     private SwipeRefreshLayout srl;
 
-    private Bundle mSavedInstanceState;
-
     private View root;
     private View noTidings;
 
@@ -129,10 +127,6 @@ public class TidingsListFragment extends Fragment implements TidingsListContract
         adapter = new TidingListAdapter(groups, tidings);
         recyclerView.setAdapter(adapter);
 
-        if (mSavedInstanceState != null) {
-            adapter.onRestoreInstanceState(mSavedInstanceState);
-        }
-
         recyclerView.setVisibility(View.VISIBLE);
         noTidings.setVisibility(View.GONE);
     }
@@ -148,20 +142,6 @@ public class TidingsListFragment extends Fragment implements TidingsListContract
         public void getItemOffsets(
                 Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
             outRect.set(margin, margin, margin, margin);
-        }
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        adapter.onSaveInstanceState(outState);
-    }
-
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        if (savedInstanceState != null) {
-            mSavedInstanceState = savedInstanceState;
         }
     }
 
