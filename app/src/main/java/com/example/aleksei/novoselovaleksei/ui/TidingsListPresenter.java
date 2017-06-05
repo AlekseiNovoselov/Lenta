@@ -40,7 +40,7 @@ public class TidingsListPresenter implements TidingsListContract.Presenter {
 
     @Override
     public void subscribe() {
-        loadTidings(false);
+        loadTidings(false, false);
     }
 
     @Override

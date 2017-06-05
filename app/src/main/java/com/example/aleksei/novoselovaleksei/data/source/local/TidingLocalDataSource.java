@@ -9,7 +9,6 @@ import android.text.TextUtils;
 
 import com.example.aleksei.novoselovaleksei.data.Tiding;
 import com.example.aleksei.novoselovaleksei.data.source.TidingDataSource;
-import com.example.aleksei.novoselovaleksei.data.source.remote.common.BaseSource;
 import com.example.aleksei.novoselovaleksei.utils.schedulers.BaseSchedulerProvider;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.squareup.sqlbrite.SqlBrite;
@@ -36,13 +35,13 @@ public class TidingLocalDataSource implements TidingDataSource {
     private final BriteDatabase mDatabaseHelper;
 
     @NonNull
-    private Func1<Cursor, Tiding> mTaskMapperFunction;
+    private Func1<Cursor, Tiding> mTidingMapperFunction;
 
     private TidingLocalDataSource(@NonNull Context context, BaseSchedulerProvider schedulerProvider) {
         TidingsDbHelper dbHelper = new TidingsDbHelper(context);
         SqlBrite sqlBrite = SqlBrite.create();
         mDatabaseHelper = sqlBrite.wrapDatabaseHelper(dbHelper, schedulerProvider.computation());
-        mTaskMapperFunction = this::getTiding;
+        mTidingMapperFunction = this::getTiding;
     }
 
     public static TidingLocalDataSource getInstance(
@@ -97,7 +96,7 @@ public class TidingLocalDataSource implements TidingDataSource {
         String sql = String.format("SELECT %s FROM %s", TextUtils.join(",", projection),
                 TABLE_NAME);
         return mDatabaseHelper.createQuery(TABLE_NAME, sql)
-                .mapToList(mTaskMapperFunction);
+                .mapToList(mTidingMapperFunction);
     }
 
     @Override

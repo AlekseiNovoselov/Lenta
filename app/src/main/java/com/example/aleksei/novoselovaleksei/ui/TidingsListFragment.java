@@ -79,9 +79,6 @@ public class TidingsListFragment extends Fragment implements TidingsListContract
 
         swipeRefreshLayout.setOnRefreshListener(() -> mPresenter.refreshTidings());
 
-        List<Tiding> tidings =  new ArrayList<>();
-        showTidings(tidings);
-
         return root;
     }
 
